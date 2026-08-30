@@ -73,7 +73,8 @@ function reason(c: IncidentCase): { proposal: Severity; fired: FiredRule[] } {
   return { proposal, fired };
 }
 
-export function runAgent(c: IncidentCase): AgentResult {
+export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): AgentResult {
+  const criticOn = opts.critic !== false;
   const s = c.signals;
   const steps: TraceStep[] = [];
   const evidence: string[] = [];
@@ -152,10 +153,11 @@ export function runAgent(c: IncidentCase): AgentResult {
   });
   fired.slice(0, 3).forEach((r) => evidence.push(`rule ${r.id}: ${r.why}`));
 
-  // 6 — verifier (cross-check). May consult the calendar.
+  // 6 — critic: an independent falsification pass over the proposal.
+  // May consult the calendar. Can be disabled for ablation runs.
   let finalSev = proposal;
   let adjustment: string | null = null;
-  if (s.drill) {
+  if (criticOn && s.drill) {
     steps.push({
       kind: "tool",
       label: `calendar.check("${c.service}", window=02:00–04:00)`,
@@ -163,7 +165,14 @@ export function runAgent(c: IncidentCase): AgentResult {
       status: "info",
     });
   }
-  if (s.drill) {
+  if (!criticOn) {
+    steps.push({
+      kind: "verify",
+      label: "critic.falsify(proposal)",
+      detail: "critic pass disabled (ablation run) — proposal stands unchallenged",
+      status: "info",
+    });
+  } else if (s.drill) {
     finalSev = "DRILL";
     adjustment = `${proposal} → DRILL`;
     steps.push({

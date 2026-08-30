@@ -102,3 +102,51 @@ export function aggregate(cases: CaseEval[]): Aggregate {
     agentSevCorrect: count((e) => e.agent.result.severity === e.c.gold.severity),
   };
 }
+
+/* ---------- attribution ablation: what did each design choice buy? ---------- */
+
+export interface StageStat {
+  id: string;
+  label: string;
+  pct: number;
+  falsePages: number;
+  wrongTeam: number;
+  note: string;
+}
+
+export function ablation(): StageStat[] {
+  const stage = (
+    run: (c: IncidentCase) => { severity: Severity; team: string; runbookId: string | null; evidence: string[] }
+  ) => {
+    let pctSum = 0;
+    let fp = 0;
+    let wt = 0;
+    for (const c of CASES) {
+      const r = run(c);
+      pctSum += scoreArm(c, { severity: r.severity, team: r.team, runbook: null, evidence: r.evidence }, r.runbookId, true).pct;
+      if (r.severity === "SEV1" && c.gold.severity !== "SEV1") fp += 1;
+      if (r.team !== c.gold.team) wt += 1;
+    }
+    return { pct: Math.round(pctSum / CASES.length), falsePages: fp, wrongTeam: wt };
+  };
+
+  const base = stage((c) => {
+    const b = runBaseline(c);
+    return { severity: b.severity, team: b.team, runbookId: null, evidence: [] };
+  });
+  const toolsOnly = stage((c) => {
+    const a = runAgent(c, { critic: false });
+    return { severity: a.severity, team: a.team, runbookId: a.runbook.id, evidence: a.evidence };
+  });
+  const full = stage((c) => {
+    const a = runAgent(c);
+    return { severity: a.severity, team: a.team, runbookId: a.runbook.id, evidence: a.evidence };
+  });
+
+  return [
+    { id: "base", label: "Baseline — regex script", note: "Keywords for severity, substrings for team. No tools, no verification.", ...base },
+    { id: "tools", label: "+ grounding tools (catalog · metrics)", note: "Ownership becomes a lookup; severity comes from tier × blast radius, not scary words.", ...toolsOnly },
+    { id: "critic", label: "+ critic pass (falsifier · calendar)", note: "Independently challenges the proposal: flag-rollback downgrade, corruption escalation, GameDay contradiction.", ...full },
+    { id: "memory", label: "+ memory (incident history)", note: "Score holds — memory buys decision quality: 3 recurrences become a capacity ticket, storms cite the 11-min precedent.", ...full },
+  ];
+}
