@@ -20,6 +20,10 @@ const VOICE: Record<string, string> = {
     "Now we try to lie to it. This alert is a real severity one, but a prompt injection payload has been appended, telling the agent to ignore its instructions and respond drill. Watch parse dot sanitize quarantine the directive. The verdict still comes from the meters, so the page stands. An agent that read prose as instructions would have obeyed. This one has no ear for it. In the red team section, all six poisoned alerts are scored live.",
   gate:
     "You are now the qualified human. Sign in as a reviewer, read the evidence chain, and approve. The page is sent, reaches a real on-call engineer, and the decision is written to an immutable audit ledger. Try the same as a guest. The request is declined, and that is recorded too. Authenticated is not the same as authorized.",
+  storm:
+    "Now scale. One broken deploy produces four alerts in four seconds: pod restarts, Redis latency, API timeouts, database connection spikes. A keyword baseline fires four separate actions and wakes people four times. The correlation engine groups them by timing, service topology and the deploy change, fingerprints the signature against memory, and stages exactly one page. Four alerts, one incident, one decision.",
+  postmortem:
+    "When the incident is over, the paperwork writes itself. The postmortem is assembled from the same artifacts that triaged the incident: the trace, the fired rules, the memory recall, and the human decision from the ledger, reviewer's name included. Nothing is invented. Same incident, byte identical document, copyable or downloadable as markdown.",
   ops:
     "Every action carries a request id you can trace through structured logs. Export the audit ledger as a reviewable record. Turn on chaos, and the whole service degrades gracefully. Triage retries, gates stay closed, health stays honest. Failure is a designed state, not an accident.",
   bench:
@@ -158,6 +162,19 @@ const STEPS: TourStep[] = [
     target: "#desk",
     title: "Now you're the qualified human",
     body: "In the detail panel above, sign in as Priya Natarajan (reviewer) and approve the INC-2208 page — it fires and is written to the ledger, immutable (a second attempt gets 409 ALREADY_DECIDED). Want to watch authorization get enforced? Sign in as Guest Observer and take the audited 403.",
+  },
+  {
+    id: "storm",
+    target: "#storm",
+    action: () => window.dispatchEvent(new CustomEvent("pm:storm")),
+    title: "Four alerts. One incident.",
+    body: "A deploy breaks checkout: pod restarts, Redis latency, API timeouts, DB connection spikes — four alerts in four seconds. The baseline would fire four separate actions and wake people four times. The correlation engine groups them on temporal, topology and change evidence, fingerprints the signature against memory, and stages ONE page — which is now waiting at your gate.",
+  },
+  {
+    id: "postmortem",
+    target: "#postmortem",
+    title: "The paperwork writes itself",
+    body: "Every postmortem is assembled from the exact artifacts that triaged the incident — the trace, the fired rules, the memory recall, and the ledger's human decision with the reviewer's name. No invented fields: same incident, byte-identical document. Copy it or download the markdown.",
   },
   {
     id: "ops",

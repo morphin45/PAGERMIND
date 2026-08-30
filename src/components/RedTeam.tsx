@@ -47,7 +47,7 @@ export default function RedTeam() {
   return (
     <section id="redteam" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="05"
+        index="10"
         kicker="Red team — adversarial robustness"
         title={
           <>

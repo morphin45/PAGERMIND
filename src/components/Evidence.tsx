@@ -298,7 +298,7 @@ export default function Evidence() {
   return (
     <section id="evidence" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="04"
+        index="09"
         kicker="Evidence — attribution & verification"
         title={
           <>

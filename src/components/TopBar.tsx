@@ -4,7 +4,9 @@ import { IconPulse } from "./icons";
 
 const CONSOLE_LINKS = [
   ["#console", "Console"],
+  ["#storm", "Storm"],
   ["#desk", "Gates"],
+  ["#postmortem", "Postmortem"],
   ["#ops", "Ops"],
 ] as const;
 

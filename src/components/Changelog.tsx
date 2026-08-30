@@ -50,8 +50,20 @@ const ENTRIES: Entry[] = [
     decision: "Kept. The hard case (drill) needed a source of truth no alert text contained.",
   },
   {
+    stage: "Iteration 6",
+    tried: "Correlation engine: a 4-alert checkout storm collapses to one incident on temporal + topology + deploy-change evidence, fingerprinted against memory, staged at the real gate. Baseline's 4 noisy dispositions shown side by side.",
+    evidence: "4 alerts → 1 incident → 1 page, vs baseline's 4 independent actions (2 pages, 2 misroutes). Grouping evidence in the trace and the ledger.",
+    decision: "Kept. Alert-storm suppression is the second-largest source of on-call noise — now demonstrated live.",
+  },
+  {
+    stage: "Iteration 7",
+    tried: "Deterministic postmortem generator: assembles the document from the triage artifacts — trace, fired rules, memory recall, and the ledger's human decision (reviewer + note read live).",
+    evidence: "Every field evidence-traced; regeneration byte-identical for the same evidence; markdown export.",
+    decision: "Kept. Closes the incident lifecycle with zero invented fields.",
+  },
+  {
     stage: "Final",
-    tried: "Combined: parser → tools (catalog, metrics, history, runbook, calendar) → rule reasoner → verifier → human gate. Same 12 cases, same rubric, both arms re-run from one command.",
+    tried: "Combined: parser → tools (catalog, metrics, history, runbook, calendar) → rule reasoner → verifier → human gate, plus correlation and postmortem generation. Same 12 cases, same rubric, both arms re-run from one command.",
     evidence: "Rubric 30% → 100% · false pages 5 → 0 · wrong-team 9 → 0 · review time 9.5 → 1.5 min · cost $0.00, runtime <1s.",
     decision: "Identified the main contribution: the verifier + grounding tools, not the sequence shape. Full trace on every run.",
   },
@@ -61,7 +73,7 @@ export default function Changelog() {
   return (
     <section id="changelog" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="07"
+        index="11"
         kicker="Improvement changelog"
         title={
           <>

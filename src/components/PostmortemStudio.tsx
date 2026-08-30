@@ -102,7 +102,7 @@ export default function PostmortemStudio() {
   return (
     <section id="postmortem" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-16 md:py-24">
       <SectionHead
-        index="03"
+        index="04"
         kicker="Postmortem studio — the evidence chain writes the document"
         title={
           <>

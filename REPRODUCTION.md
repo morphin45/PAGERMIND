@@ -36,9 +36,12 @@ npm run build && npm run preview
 ### Showing it to judges (the demo)
 
 1. **Guided tour** — in the console, click the amber **▶ demo** button (top bar).
-   A spotlight walks the live product end-to-end: the streaming feed, the
-   GameDay drill auto-resolving under rule D-1, a **memory/recurrence** beat
-   (INC-2201 recalls a prior fix), the silent-corruption page waiting at the
+   A spotlight walks the live product end-to-end with optional voice-over
+   (browser speech synthesis; toggle "voice off" for silent): the streaming
+   feed, the GameDay drill auto-resolving under rule D-1, a memory/recurrence
+   beat (INC-2201 recalls a prior fix), the silent-corruption page, the
+   **Red Team** suppression attack, the **4-alert storm collapsing to one
+   incident**, the **evidence-written postmortem**, and the
    human gate, approval → page lands on a named on-call engineer, chaos mode,
    then the scored report and the evidence section. Keyboard: ← → / Esc. An
    *auto* mode advances every 9 s — ideal for a hands-free walkthrough.

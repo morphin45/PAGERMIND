@@ -218,7 +218,7 @@ export default function OpsConsole() {
   return (
     <section id="ops" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="06"
+        index="05"
         kicker="Observability & service internals"
         title={
           <>

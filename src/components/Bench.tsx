@@ -97,7 +97,7 @@ export default function Bench() {
   return (
     <section id="bench" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="02"
+        index="07"
         kicker="Live bench — baseline vs agent"
         title={
           <>

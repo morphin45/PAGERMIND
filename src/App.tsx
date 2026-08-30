@@ -44,7 +44,9 @@ export default function App() {
           {mode === "console" ? (
             <>
               <Workstation />
+              <CorrelationEngine />
               <TriageDesk />
+              <PostmortemStudio />
               <OpsConsole />
               {/* compact submission summary inside the product */}
               <section className="mx-auto max-w-7xl px-4 md:px-8 py-14">

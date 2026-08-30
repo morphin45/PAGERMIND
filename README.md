@@ -38,6 +38,8 @@ two optional developer flags.
 | Surface | What it does |
 | --- | --- |
 | **Console** (`CONSOLE` mode) | live incident feed → agent trace replay → approve/reject pages inline |
+| **Storm** (§02) | 4-alert checkout storm collapses to one incident with visible grouping evidence; baseline's 4 noisy dispositions shown side by side |
+| **Postmortem studio** (§04) | deterministic postmortem assembled from the triage artifacts — trace, rules, memory recall, ledger decision; markdown export |
 | **Gates** (§) | full approval desk: sandbox sign-in, role enforcement (403 audited), immutable decisions (409) |
 | **Ops** (§) | `/v1/health`, structured logs with request ids, audit export, chaos injection (503) |
 | **Red Team** (§) | 6 poisoned alerts scored as an adversarial axis — agent resists 6/6 via `parse.sanitize`, baseline 0/6 |

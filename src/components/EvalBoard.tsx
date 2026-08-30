@@ -65,7 +65,7 @@ export default function EvalBoard() {
   return (
     <section id="eval" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="03"
+        index="08"
         kicker="Measured improvement"
         title={
           <>

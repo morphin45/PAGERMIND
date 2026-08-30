@@ -233,7 +233,7 @@ export default function TriageDesk() {
   return (
     <section id="desk" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="05"
+        index="03"
         kicker="Operations console — human-in-the-loop"
         title={
           <>
