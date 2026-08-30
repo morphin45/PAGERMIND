@@ -9,6 +9,18 @@ human — lands in an append-only audit ledger. The same engine powers the
 scored baseline-vs-agent evaluation, the red-team suite, and the postmortem
 generator.
 
+**Market status (honest):** a complete product on a synthetic sandbox —
+ready to evaluate, demo and learn from; not yet a production deployment.
+What's enforced for real today vs. sandbox-honest vs. the path to production
+is stated in the app (Report → Repro → trust panel) and in `ROADMAP.md`.
+
+## What existed before vs. what this submission adds
+
+- **Pre-existing:** the Vite + React + TypeScript + Tailwind starter template only.
+- **Added by this submission:** everything else — the evaluation set, the
+  baseline and agent engines, the service layer, the console, the report,
+  tests and docs. Licensed under MIT (`LICENSE`).
+
 ## Who has the problem
 
 On-call engineers. The bottleneck is not alerting — it's that **severity

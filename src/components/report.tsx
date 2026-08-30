@@ -887,6 +887,46 @@ export function Repro() {
           </div>
         </Reveal>
       </div>
+
+      {/* trust & the road to production */}
+      <Reveal className="mt-6">
+        <div className="panel grid gap-px overflow-hidden md:grid-cols-3">
+          {(
+            [
+              ["enforced today — in this artifact", "#31d48e", [
+                "authorization service-side: 401 · 403 (denials audited) · 409 immutable · 422 validated",
+                "human gate on every consequential act; sandboxed simulation, synthetic data",
+                "append-only audit ledger · request IDs end-to-end · deterministic, verifiable engine",
+                "chaos-tested degradation: 503s, retries, honest health",
+              ]],
+              ["sandbox-honest — not production yet", "#ffb224", [
+                "identity is asserted, not authenticated (no IdP, by design — no fake passwords)",
+                "persistence is a localStorage document, not a clustered database",
+                "transport is in-browser; paging is simulated, not Twilio/PagerDuty delivery",
+                "single-tenant; no rate limiting, no network boundary, no secrets to manage",
+              ]],
+              ["production path — documented in ROADMAP.md", "#5ab8ff", [
+                "swap points: IdP → sessions · Postgres → db.ts · Prometheus → metrics.query · PagerDuty/Slack → gate transport",
+                "the engine and rubric ship unchanged — only adapters replace the sandbox seams",
+                "hardening: mTLS, network rate limits, secret vault, SLOs on the triage path itself",
+              ]],
+            ] as const
+          ).map(([title, tone, items]) => (
+            <div key={title} className="bg-ink-900/60 p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: tone }}>
+                {title}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {items.map((it) => (
+                  <li key={it} className="flex gap-2 text-[12.5px] leading-relaxed text-fog">
+                    <span style={{ color: tone }} className="shrink-0">▸</span> {it}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Reveal>
     </section>
   );
 }

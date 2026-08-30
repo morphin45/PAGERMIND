@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ADVERSARIAL, CASES, onCallFor, sevColor, type IncidentCase } from "../data/cases";
-import { runAgent, buildBrief } from "../engine/engine";
+import { runAgent, runBaseline, buildBrief } from "../engine/engine";
 import { ApiError, audit, call, gates, sessions, triage } from "../backend/backend";
 import { copyText, SevChip, useCountUp, usePlayer, useToasts, useUtcClock, IconAlert, IconGate, IconMemory, IconReplay } from "./ui";
 
 type RowStatus = "queued" | "triaging" | "auto" | "gate" | "paged" | "rejected" | "error";
+const TERMINAL: RowStatus[] = ["auto", "gate", "paged", "rejected", "error"];
 
 interface SimIncident {
   uid: string;
   round: number;
   c: IncidentCase;
   arrivedAt: string;
+  t0: number;
+  resolvedAt?: number;
   status: RowStatus;
   gateId?: string;
   decidedBy?: string;
@@ -136,7 +139,13 @@ export default function Workstation() {
   useEffect(() => sessions.onChange(() => setSession(sessions.current())), []);
 
   const patch = useCallback((uid: string, p: Partial<SimIncident>) => {
-    setRows((rs) => rs.map((r) => (r.uid === uid ? { ...r, ...p } : r)));
+    setRows((rs) =>
+      rs.map((r) =>
+        r.uid === uid
+          ? { ...r, ...p, ...(p.status && TERMINAL.includes(p.status) && !r.resolvedAt ? { resolvedAt: Date.now() } : {}) }
+          : r
+      )
+    );
   }, []);
 
   /* resolve: run the agent through the real API, then dispose */
@@ -192,7 +201,7 @@ export default function Workstation() {
   const arrive = useCallback(
     (c: IncidentCase, round: number) => {
       const uid = `${c.id}·r${round}`;
-      const fresh: SimIncident = { uid, round, c, arrivedAt: fmtClock(), status: "queued" };
+      const fresh: SimIncident = { uid, round, c, arrivedAt: fmtClock(), t0: Date.now(), status: "queued" };
       setRows((rs) => [fresh, ...rs].slice(0, 16));
       setSelected((sel) => sel ?? uid);
       later(380, () => patch(uid, { status: "triaging" }));
@@ -213,6 +222,22 @@ export default function Workstation() {
     }, 5200 / speed);
     return () => window.clearInterval(t);
   }, [paused, speed, arrive]);
+
+  /* operator keyboard shortcuts (ignored while typing) */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        setPaused((p) => !p);
+      } else if (e.key === "1") setSpeed(0.5);
+      else if (e.key === "2") setSpeed(1);
+      else if (e.key === "3") setSpeed(1.6);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   /* first blood — three quick arrivals so the console opens alive */
   useEffect(() => {
@@ -266,11 +291,16 @@ export default function Workstation() {
   const uidHash = useMemo(() => [...(selectedRow?.uid ?? "")].reduce((a, ch) => a + ch.charCodeAt(0), 0), [selectedRow?.uid]);
   const { visible, done } = usePlayer(verdict?.steps.length ?? 0, uidHash, 300);
 
+  const resolvedRows = rows.filter((r) => r.resolvedAt !== undefined);
   const kpi = {
     auto: rows.filter((r) => r.status === "auto").length,
     gate: rows.filter((r) => r.status === "gate").length,
     paged: rows.filter((r) => r.status === "paged").length,
-    prevented: rows.filter((r) => r.status === "auto" && r.c.gold.severity === "DRILL").length,
+    prevented: rows.filter((r) => r.status === "auto" && runBaseline(r.c).severity === "SEV1").length,
+    mttd: resolvedRows.length
+      ? Math.round(resolvedRows.reduce((s, r) => s + (r.resolvedAt! - r.t0), 0) / resolvedRows.length / 1000)
+      : 0,
+    decisions: rows.filter((r) => r.status === "paged" || r.status === "rejected").length,
   };
 
   return (
@@ -297,12 +327,18 @@ export default function Workstation() {
       </div>
 
       {/* KPIs */}
-      <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-5">
         <Kpi label="auto-resolved" value={kpi.auto} tone="#31d48e" active />
         <Kpi label="at human gate" value={kpi.gate} tone="#ffb224" active />
         <Kpi label="pages fired (approved)" value={kpi.paged} tone="#ff5d5d" active />
         <Kpi label="false pages prevented" value={kpi.prevented} tone="#5ab8ff" active />
+        <Kpi label="MTTD (s)" value={kpi.mttd} tone="#e9f1fb" active />
       </div>
+      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10px] tracking-[0.14em] text-fog-2 uppercase">
+        <span>shift decisions · <span className="text-snow">{kpi.decisions}</span></span>
+        <span className="hidden sm:inline">operator keys — <span className="text-fog">space</span> pause · <span className="text-fog">1</span> slow · <span className="text-fog">2</span> normal · <span className="text-fog">3</span> fast</span>
+        <span className="text-fog-2/70">MTTD = arrival → disposition, this session</span>
+      </p>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-12">
         {/* feed */}

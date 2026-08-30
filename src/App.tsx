@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { aggregate, evaluateAll, adversarialSuite } from "./engine/engine";
+import { isChaos, onChaos, setChaos } from "./backend/backend";
 import Workstation from "./components/Workstation";
 import { CorrelationEngine, OpsConsole, PostmortemStudio, TriageDesk } from "./components/operations";
 import { Problem, Bench, EvalBoard, Evidence, RedTeam, Changelog, Architecture, Repro, HotTake, Footer } from "./components/report";
@@ -139,6 +140,89 @@ function Summary({ agg, red, onReport }: { agg: ReturnType<typeof aggregate>; re
   );
 }
 
+/* ---------------- first-run shift briefing ---------------- */
+
+function Onboarding({ onDemo }: { onDemo: () => void }) {
+  const [seen, setSeen] = useState(() => {
+    try {
+      return window.localStorage.getItem("pm.onboarded.v1") === "1";
+    } catch {
+      return true;
+    }
+  });
+  const dismiss = (demo: boolean) => {
+    try {
+      window.localStorage.setItem("pm.onboarded.v1", "1");
+    } catch {
+      /* memory mode — fine */
+    }
+    setSeen(true);
+    if (demo) onDemo();
+  };
+  if (seen) return null;
+  return (
+    <div className="fixed inset-0 z-[75] grid place-items-center bg-ink-950/88 px-4 backdrop-blur-sm">
+      <div className="panel scanlines feed-in relative w-full max-w-xl border-l-4 border-l-amber p-7 md:p-9">
+        <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-amber">shift briefing · 03:00 UTC</p>
+        <h2 className="font-display mt-3 text-4xl font-bold uppercase leading-[0.98] tracking-tight text-snow md:text-5xl">
+          You're on-call
+          <br />
+          now.
+        </h2>
+        <ol className="mt-6 space-y-3.5">
+          {[
+            ["01", "The feed is live", "Synthetic incidents stream in; a deterministic agent triages each with a visible trace. The space bar pauses the clock."],
+            ["02", "Pages wait for you", "SEV1/SEV2 calls stage at the human gate. Nothing fires without a reviewer — sign in at the desk as Priya."],
+            ["03", "Nothing here is real — except the audit", "All data is synthetic; every act lands in the append-only ledger. Reproduce every number: npx vitest run."],
+          ].map(([n, t, d]) => (
+            <li key={n} className="flex gap-4">
+              <span className="font-display text-lg font-bold text-amber">{n}</span>
+              <span>
+                <span className="block font-mono text-[12px] font-semibold uppercase tracking-[0.12em] text-snow">{t}</span>
+                <span className="block text-[13px] leading-relaxed text-fog">{d}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-7 flex flex-wrap gap-3">
+          <button className="btn-solid" onClick={() => dismiss(true)}>
+            ▶ run the guided demo
+          </button>
+          <button className="btn" onClick={() => dismiss(false)}>
+            explore on my own
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- degraded-mode banner ---------------- */
+
+function DegradedBanner() {
+  const [degraded, setDegraded] = useState(isChaos());
+  useEffect(() => onChaos(setDegraded), []);
+  if (!degraded) return null;
+  return (
+    <div className="fixed inset-x-0 top-12 z-40 border-b border-alarm/40 bg-alarm/12 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 md:px-8">
+        <span className="h-1.5 w-1.5 shrink-0 bg-alarm pulse-amber" />
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-alarm">
+          storage offline — chaos mode · triage unaffected · decisions fail 503
+        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <a href="#ops" className="font-mono text-[10px] uppercase tracking-[0.14em] text-fog underline decoration-line-2 underline-offset-4 hover:text-snow">
+            inspect in ops
+          </a>
+          <button onClick={() => setChaos(false)} className="font-mono text-[10px] uppercase tracking-[0.14em] text-mint hover:underline">
+            restore
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState<ViewMode>("console");
   const [tour, setTour] = useState<"manual" | "present" | null>(null);
@@ -154,7 +238,9 @@ export default function App() {
     <ToastProvider>
       <div className="bg-stage min-h-screen">
         <TopBar mode={mode} onMode={setMode} onDemo={startTour} />
+        <DegradedBanner />
         <DemoTour open={tour !== null} onClose={() => setTour(null)} mode={mode} setMode={setMode} preset={tour ?? "manual"} />
+        <Onboarding onDemo={startTour} />
         <main>
           {mode === "console" ? (
             <>
