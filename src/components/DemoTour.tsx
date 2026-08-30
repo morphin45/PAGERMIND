@@ -217,7 +217,12 @@ export default function DemoTour({
       </div>
 
       {/* narration card */}
-      <div className="fixed bottom-5 right-5 z-[90] w-[min(430px,calc(100vw-2.5rem))]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Guided demo tour"
+        className="fixed bottom-5 right-5 z-[90] w-[min(430px,calc(100vw-2.5rem))]"
+      >
         <div className="panel-solid border-amber/40 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.85)]">
           <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
             <span className="grid h-6 w-6 place-items-center border border-amber/60 text-amber">

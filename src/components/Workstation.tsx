@@ -245,6 +245,7 @@ function DetailPanel({
                     <input
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
+                      aria-label="Decision note for the audit ledger"
                       placeholder="decision note (required for reject — goes to the ledger)"
                       className="w-full border border-line-2 bg-ink-950 px-3 py-2 font-mono text-[11px] text-snow placeholder:text-fog-2 focus:border-amber focus:outline-none"
                     />
