@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { CASES } from "../data/incidents";
 import { runAgent } from "../engine/agent";
 import { runBaseline } from "../engine/baseline";
-import { aggregate, evaluateAll } from "../engine/eval";
+import { ablation, aggregate, evaluateAll } from "../engine/eval";
 import { db } from "../backend/db";
 import { gates, sessions, validateDecision, REVIEWERS } from "../backend/services";
 import { ApiError } from "../backend/types";
@@ -50,6 +50,36 @@ describe("shared evaluation rubric", () => {
     expect(agg.agentWrongTeam).toBe(0);
     expect(agg.baselineMissed).toBe(1); // INC-2208: silent corruption filed 2 levels quiet
     expect(agg.agentMissed).toBe(0);
+  });
+});
+
+describe("attribution ablation", () => {
+  it("reports the four stages in order, from baseline to full agent", () => {
+    const stages = ablation();
+    expect(stages.map((s) => s.id)).toEqual(["base", "tools", "critic", "memory"]);
+  });
+
+  it("anchors the base stage to the baseline aggregate (30%)", () => {
+    const [base] = ablation();
+    expect(base.pct).toBe(30);
+    expect(base.falsePages).toBe(5);
+    expect(base.wrongTeam).toBe(9);
+  });
+
+  it("shows grounding tools fixing team routing immediately (wrong-team → 0)", () => {
+    const tools = ablation()[1];
+    expect(tools.wrongTeam).toBe(0); // ownership is a catalog lookup, not a guess
+  });
+
+  it("is monotonically non-decreasing and reaches 100% with zero false pages", () => {
+    const stages = ablation();
+    for (let i = 1; i < stages.length; i++) {
+      expect(stages[i].pct, `${stages[i].id} ≥ ${stages[i - 1].id}`).toBeGreaterThanOrEqual(stages[i - 1].pct);
+    }
+    const full = stages[stages.length - 1];
+    expect(full.pct).toBe(100);
+    expect(full.falsePages).toBe(0);
+    expect(full.wrongTeam).toBe(0);
   });
 });
 

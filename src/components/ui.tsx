@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { sevColor, type Severity } from "../data/incidents";
 
 /* ---------- scroll reveal ---------- */
@@ -138,7 +138,7 @@ export function useUtcClock() {
   return `${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())} UTC`;
 }
 
-/* ---------- toasts ---------- */
+/* ---------- toasts (context provider — one shelf for the whole app) ---------- */
 export interface Toast {
   id: number;
   kind: "ok" | "err";
@@ -146,9 +146,20 @@ export interface Toast {
   detail?: string;
 }
 
+interface ToastCtx {
+  push: (kind: Toast["kind"], title: string, detail?: string) => void;
+}
+
+const ToastContext = createContext<ToastCtx | null>(null);
 let toastSeq = 0;
 
-export function useToasts() {
+export function useToasts(): ToastCtx {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error("useToasts must be used inside <ToastProvider>");
+  return ctx;
+}
+
+export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const dismiss = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
   const push = (kind: Toast["kind"], title: string, detail?: string) => {
@@ -157,10 +168,15 @@ export function useToasts() {
     setToasts((t) => [...t.slice(-3), { id, kind, title, detail }]);
     window.setTimeout(() => dismiss(id), 4600);
   };
-  return { toasts, push, dismiss };
+  return (
+    <ToastContext.Provider value={{ push }}>
+      {children}
+      <ToastShelf toasts={toasts} dismiss={dismiss} />
+    </ToastContext.Provider>
+  );
 }
 
-export function ToastShelf({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: number) => void }) {
+function ToastShelf({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: number) => void }) {
   return (
     <div className="pointer-events-none fixed bottom-5 right-5 z-[60] flex w-[min(360px,90vw)] flex-col gap-2" aria-live="polite">
       {toasts.map((t) => (

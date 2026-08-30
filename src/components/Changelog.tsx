@@ -61,7 +61,7 @@ export default function Changelog() {
   return (
     <section id="changelog" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="06"
+        index="07"
         kicker="Improvement changelog"
         title={
           <>

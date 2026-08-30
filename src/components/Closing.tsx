@@ -34,7 +34,7 @@ export function Repro() {
   return (
     <section id="repro" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="08"
+        index="09"
         kicker="Reproducibility"
         title={
           <>
@@ -95,7 +95,7 @@ export function Repro() {
 export function HotTake() {
   return (
     <section id="take" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
-      <SectionHead index="09" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity.<br /><span className="text-amber">It was confidence.</span></>} />
+      <SectionHead index="10" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity.<br /><span className="text-amber">It was confidence.</span></>} />
       <div className="grid gap-6 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <blockquote className="panel relative overflow-hidden p-7 md:p-10">

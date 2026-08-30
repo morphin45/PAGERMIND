@@ -123,7 +123,7 @@ export function ablation(): StageStat[] {
     let wt = 0;
     for (const c of CASES) {
       const r = run(c);
-      pctSum += scoreArm(c, { severity: r.severity, team: r.team, runbook: null, evidence: r.evidence }, r.runbookId, true).pct;
+      pctSum += scoreArm(c, { severity: r.severity, team: r.team, evidence: r.evidence }, r.runbookId, true).pct;
       if (r.severity === "SEV1" && c.gold.severity !== "SEV1") fp += 1;
       if (r.team !== c.gold.team) wt += 1;
     }

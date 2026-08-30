@@ -5,6 +5,7 @@ const LINKS = [
   ["#problem", "Problem"],
   ["#bench", "Bench"],
   ["#eval", "Eval"],
+  ["#evidence", "Evidence"],
   ["#desk", "Desk"],
   ["#ops", "Ops"],
   ["#changelog", "Changelog"],

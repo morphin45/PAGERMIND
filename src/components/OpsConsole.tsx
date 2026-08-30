@@ -6,7 +6,7 @@ import {
   type HealthReport,
   type LogEntry,
 } from "../backend/types";
-import { Reveal, SectionHead, ToastShelf, useToasts } from "./ui";
+import { Reveal, SectionHead, useToasts } from "./ui";
 import { IconActivity, IconAlert, IconDownload, IconShield } from "./icons";
 
 function fmtUptime(ms: number): string {
@@ -162,7 +162,7 @@ export default function OpsConsole() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [chaos, setChaosState] = useState(isChaos());
-  const { toasts, push, dismiss } = useToasts();
+  const { push } = useToasts();
 
   useEffect(() => {
     let cancelled = false;
@@ -217,9 +217,8 @@ export default function OpsConsole() {
 
   return (
     <section id="ops" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
-      <ToastShelf toasts={toasts} dismiss={dismiss} />
       <SectionHead
-        index="05"
+        index="06"
         kicker="Observability & service internals"
         title={
           <>

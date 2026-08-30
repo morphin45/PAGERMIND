@@ -17,7 +17,8 @@ revenue impact, deploy state and the change calendar. Keyword triage therefore b
 | Evaluation set | `src/data/incidents.ts` | 12 synthetic incidents, gold answers fixed before the agent rules existed |
 | **Baseline** | `src/engine/baseline.ts` | the "script people use today": regex severity + substring team table |
 | **Agent** | `src/engine/agent.ts` | tools (catalog/metrics/history/runbook/calendar) → rule reasoner → verifier → human gate; fully deterministic, evidence-chained |
-| Shared rubric | `src/engine/eval.ts` | identical scoring applied to both arms |
+| Shared rubric | `src/engine/eval.ts` | identical scoring applied to both arms, plus `ablation()` for design-choice attribution |
+| Evidence | `src/components/Evidence.tsx` | attribution ladder (baseline → tools → critic → memory) + in-browser acceptance audit |
 | **Service layer** | `src/backend/` | api/v1 facade: validation, authz, idempotency, audit ledger, observability, chaos injection |
 | Persistence | `src/backend/db.ts` | versioned schema + migration registry (localStorage, memory fallback in tests) |
 | UI | `src/components/` | war room, live bench, eval board, approval desk, ops console, changelog |
@@ -29,7 +30,7 @@ revenue impact, deploy state and the change calendar. Keyword triage therefore b
 npm install
 npm run dev        # local dev server
 npm run build      # production static build (dist/)
-npx vitest run     # test suite: engine + evaluation + gate state machine
+npx vitest run     # test suite: engine + evaluation + attribution ablation + gate state machine
 ```
 
 No API keys, no network calls, no environment variables required (see `.env.example` for the

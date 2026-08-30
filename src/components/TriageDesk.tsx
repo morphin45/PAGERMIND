@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { call, onChaos } from "../backend/api";
 import { REVIEWERS } from "../backend/services";
 import { ApiError, type GateProposal, type Reviewer, type Session } from "../backend/types";
-import { Reveal, SectionHead, SevChip, ToastShelf, useToasts } from "./ui";
+import { Reveal, SectionHead, SevChip, useToasts } from "./ui";
 import { IconAlert, IconCheck, IconGate, IconUser, IconX } from "./icons";
 
 const SESSION_KEY = "pagermind.session-id";
@@ -157,7 +157,7 @@ export default function TriageDesk() {
   const [selectedReviewer, setSelectedReviewer] = useState<Reviewer>(REVIEWERS[0]);
   const [signingIn, setSigningIn] = useState(false);
   const [chaos, setChaosState] = useState(false);
-  const { toasts, push, dismiss } = useToasts();
+  const { push } = useToasts();
 
   const loadGates = useCallback(async () => {
     try {
@@ -225,9 +225,8 @@ export default function TriageDesk() {
 
   return (
     <section id="desk" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
-      <ToastShelf toasts={toasts} dismiss={dismiss} />
       <SectionHead
-        index="04"
+        index="05"
         kicker="Operations console — human-in-the-loop"
         title={
           <>

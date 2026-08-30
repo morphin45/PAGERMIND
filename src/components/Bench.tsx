@@ -2,8 +2,30 @@ import { useMemo, useState } from "react";
 import { CASES, type IncidentCase } from "../data/incidents";
 import { runBaseline } from "../engine/baseline";
 import { runAgent, type TraceStep } from "../engine/agent";
-import { Reveal, SectionHead, SevChip, usePlayer } from "./ui";
-import { IconCheck, IconReplay, IconX, IconBook, IconGate, IconMemory } from "./icons";
+import { buildBrief } from "../engine/brief";
+import { Reveal, SectionHead, SevChip, usePlayer, useToasts } from "./ui";
+import { IconCheck, IconReplay, IconX, IconBook, IconGate, IconMemory, IconDownload } from "./icons";
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
 
 const KIND_COLOR: Record<string, string> = {
   parse: "#5ab8ff",
@@ -296,8 +318,60 @@ export default function Bench() {
               <p className="mt-1.5 text-[13px] leading-relaxed text-fog">{c.gold.trapNote}</p>
             </div>
           </Reveal>
+
+          {/* handoff brief — the end-to-end artifact */}
+          <Reveal>
+            <BriefPanel caseId={c.id} ready={done} />
+          </Reveal>
         </div>
       </div>
     </section>
+  );
+}
+
+function BriefPanel({ caseId, ready }: { caseId: string; ready: boolean }) {
+  const [open, setOpen] = useState(false);
+  const { push } = useToasts();
+  const c = useMemo(() => CASES.find((x) => x.id === caseId)!, [caseId]);
+  const brief = useMemo(() => buildBrief(c, runAgent(c)), [c]);
+
+  const copy = async () => {
+    const ok = await copyText(brief);
+    push(ok ? "ok" : "err", ok ? "handoff brief copied to clipboard" : "clipboard unavailable — select and copy manually");
+  };
+
+  return (
+    <div className="panel-solid">
+      <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+        <IconDownload size={14} className="text-mint" />
+        <span className="font-mono text-[10px] tracking-[0.2em] text-fog-2 uppercase">
+          end-to-end artifact · handoff brief for the incident channel
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <button className="btn py-1.5 px-3" onClick={copy} disabled={!ready}>
+            copy brief
+          </button>
+          <button className="btn py-1.5 px-3" onClick={() => setOpen((o) => !o)} disabled={!ready}>
+            {open ? "hide" : "view"}
+          </button>
+        </div>
+      </div>
+      {!ready && (
+        <p className="px-4 py-3 font-mono text-[11px] text-fog-2">
+          the brief is generated from the completed trace — run the agent first.
+        </p>
+      )}
+      {ready && open && (
+        <pre className="step-in max-h-80 overflow-auto whitespace-pre-wrap border-t border-line bg-ink-950/60 p-4 font-mono text-[11px] leading-relaxed text-snow">
+          {brief}
+        </pre>
+      )}
+      {ready && !open && (
+        <p className="px-4 py-3 font-mono text-[11px] text-fog-2">
+          verdict, action, runbook, gate state and the full evidence chain — paste-ready, reviewable in five seconds,
+          every claim traceable to the trace above.
+        </p>
+      )}
+    </div>
   );
 }
