@@ -95,6 +95,66 @@ function PageDelivery({ team }: { team: string }) {
   );
 }
 
+/* ---------------- SLI health strip (living element) ---------------- */
+
+const SLI_SERVICES = ["checkout-api", "keycloak-gw", "redis-cart", "indexer-eu", "logs-3"];
+
+function hashStr(s: string): number {
+  let h = 2166136261;
+  for (const ch of s) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function SliStrip({ rows }: { rows: SimIncident[] }) {
+  const tiles = SLI_SERVICES.map((svc) => {
+    const seed = hashStr(svc);
+    const pts = Array.from(
+      { length: 28 },
+      (_, i) => 0.92 + 0.06 * Math.sin(((seed % 97) / 10) + i * 0.55) + 0.02 * Math.sin(i * 1.7 + (seed % 7))
+    );
+    const mine = rows.filter((r) => r.c.service.split("-")[0] === svc.split("-")[0]);
+    mine.slice(0, 4).forEach((r, k) => {
+      const amp =
+        r.c.gold.severity === "SEV1" ? 0.4 : r.c.gold.severity === "SEV2" ? 0.28 : r.c.gold.severity === "SEV3" ? 0.16 : 0.07;
+      for (let i = 20; i < 28; i++) pts[i] -= amp * Math.exp(-(i - 20) * 0.25) * (1 - k * 0.2);
+    });
+    const cur = Math.max(0.05, Math.min(1, pts[27]));
+    const color = cur > 0.8 ? "#31d48e" : cur > 0.6 ? "#ffb224" : "#ff5d5d";
+    const line = pts.map((v, i) => `${((i * 120) / 27).toFixed(1)},${(28 - v * 26).toFixed(1)}`).join(" ");
+    return { svc, cur, color, line };
+  });
+
+  return (
+    <div>
+      <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-fog-2">
+        service health · sandbox telemetry — dips as incidents land
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+        {tiles.map(({ svc, cur, color, line }) => (
+          <div
+            key={svc}
+            className="group border border-line bg-ink-900/70 px-3 py-2 transition-all hover:-translate-y-0.5 hover:border-line-2"
+          >
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-fog-2">{svc}</span>
+              <span className="font-display text-sm font-bold tabular-nums" style={{ color }}>
+                {Math.round(cur * 100)}%
+              </span>
+            </div>
+            <svg viewBox="0 0 120 30" className="mt-1 h-7 w-full" aria-hidden>
+              <polygon points={`0,30 ${line} 120,30`} fill={color} opacity="0.1" />
+              <polyline points={line} fill="none" stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+            </svg>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- KPI tile ---------------- */
 
 function Kpi({ label, value, tone, active }: { label: string; value: number; tone: string; active: boolean }) {
@@ -225,6 +285,13 @@ export default function Workstation() {
     return () => window.clearInterval(t);
   }, [paused, speed, arrive]);
 
+  /* command-palette hook: toggle pause */
+  useEffect(() => {
+    const onToggle = () => setPaused((p) => !p);
+    window.addEventListener("pm:pause-toggle", onToggle);
+    return () => window.removeEventListener("pm:pause-toggle", onToggle);
+  }, []);
+
   /* operator keyboard shortcuts (ignored while typing) */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -326,6 +393,11 @@ export default function Workstation() {
             <IconReplay size={12} /> reset
           </button>
         </div>
+      </div>
+
+      {/* service health */}
+      <div className="mt-3">
+        <SliStrip rows={rows} />
       </div>
 
       {/* KPIs */}

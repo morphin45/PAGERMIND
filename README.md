@@ -14,7 +14,11 @@ ready to evaluate, demo and learn from; not yet a production deployment.
 The production path is a **contract-tested adapter boundary**: the engine
 runs unchanged against an alternate adapter implementation
 (`src/engine/stubAdapters.ts`, asserted in the test suite), so real
-integrations are swaps, not rewrites — but zero real-world adapters exist yet.
+integrations are swaps, not rewrites. **One real adapter already exists** —
+`src/engine/live.ts` reads GitHub's public Status API (keyless, read-only,
+rendered in Console · Live) — proving the seam against a genuine external
+service; the remaining adapters (Prometheus, CMDB, IdP, paging transport) are
+documented in `ROADMAP.md`.
 What's enforced for real today vs. sandbox-honest vs. the path to production
 is stated in the app (Report → Repro → trust panel) and in `ROADMAP.md`.
 
@@ -52,11 +56,12 @@ one take).
 
 | Surface | What it does |
 | --- | --- |
-| **Console · Feed** (§01) | live incident stream → agent trace replay → approve/reject inline; page lands on a named on-call engineer |
+| **Console · Feed** (§01) | live incident stream → agent trace replay → approve/reject inline; page lands on a named on-call engineer; SLI health strip |
 | **Console · Storm** (§02) | 4-alert checkout storm collapses to one incident with visible grouping evidence; baseline's 4 noisy dispositions shown alongside |
-| **Console · Gates** (§03) | sandbox sign-in, role enforcement (403 audited), immutable decisions (409), boundary validation (422) |
-| **Console · Postmortem** (§04) | deterministic postmortem assembled from the triage artifacts; markdown export |
-| **Console · Ops** (§05) | `/v1/health`, structured logs with request ids, audit export, chaos injection (503) |
+| **Console · Live** (§03) | real read-only feed from GitHub's public Status API triaged by the same engine — the first production-shaped adapter; advisory, never gates |
+| **Console · Gates** (§04) | sandbox sign-in, role enforcement (403 audited), immutable decisions (409), boundary validation (422) |
+| **Console · Postmortem** (§05) | deterministic postmortem assembled from the triage artifacts; markdown export |
+| **Console · Ops** (§06) | `/v1/health`, structured logs with request ids, audit export, chaos injection (503) |
 | **Report** (mode switch) | problem, live bench, eval, evidence, red team, changelog, architecture, repro, hot take |
 
 ## The numbers (all computed by `src/engine/engine.ts`, asserted in tests)

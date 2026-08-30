@@ -906,6 +906,7 @@ export function Repro() {
                 "single-tenant; no rate limiting, no network boundary, no secrets to manage",
               ]],
               ["production path — documented in ROADMAP.md", "#5ab8ff", [
+                "first real adapter already shipped: Console · Live reads GitHub's public Status API (read-only)",
                 "swap points: IdP → sessions · Postgres → db.ts · Prometheus → metrics.query · PagerDuty/Slack → gate transport",
                 "the engine and rubric ship unchanged — only adapters replace the sandbox seams",
                 "hardening: mTLS, network rate limits, secret vault, SLOs on the triage path itself",

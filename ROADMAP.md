@@ -13,6 +13,12 @@
   alternate adapter implementation, so phase 1 is a swap, not a rewrite.
 
 ## Phase 1 — Real signals (integration adapters)
+
+**Shipped preview:** `src/engine/live.ts` — a real, keyless, read-only adapter
+against GitHub's public Status API (rendered in Console · Live). It proves the
+seam works against a genuine external service; the remaining rows below are
+the production adapters still to build.
+
 | Sandbox seam | Production adapter | Effort |
 | --- | --- | --- |
 | `metrics.query` (static signals) | Prometheus / OpenTelemetry queries per service | M |

@@ -3,6 +3,8 @@ import { aggregate, evaluateAll, adversarialSuite } from "./engine/engine";
 import { isChaos, onChaos, setChaos } from "./backend/backend";
 import Workstation from "./components/Workstation";
 import { CorrelationEngine, OpsConsole, PostmortemStudio, TriageDesk } from "./components/operations";
+import LiveSignals from "./components/live";
+import CommandPalette from "./components/palette";
 import { Problem, Bench, EvalBoard, Evidence, RedTeam, Changelog, Architecture, Repro, HotTake, Footer } from "./components/report";
 import DemoTour from "./components/tour";
 import { IconPulse, ToastProvider, useCountUp, useUtcClock } from "./components/ui";
@@ -12,6 +14,7 @@ export type ViewMode = "console" | "report";
 const CONSOLE_LINKS = [
   ["#console", "Feed"],
   ["#storm", "Storm"],
+  ["#live", "Live"],
   ["#desk", "Gates"],
   ["#postmortem", "Postmortem"],
   ["#ops", "Ops"],
@@ -29,7 +32,17 @@ const REPORT_LINKS = [
   ["#take", "Take"],
 ] as const;
 
-function TopBar({ mode, onMode, onDemo }: { mode: ViewMode; onMode: (m: ViewMode) => void; onDemo: () => void }) {
+function TopBar({
+  mode,
+  onMode,
+  onDemo,
+  onPalette,
+}: {
+  mode: ViewMode;
+  onMode: (m: ViewMode) => void;
+  onDemo: () => void;
+  onPalette: () => void;
+}) {
   const clock = useUtcClock();
   const links = mode === "console" ? CONSOLE_LINKS : REPORT_LINKS;
   return (
@@ -48,8 +61,15 @@ function TopBar({ mode, onMode, onDemo }: { mode: ViewMode; onMode: (m: ViewMode
           ))}
         </nav>
         <button
+          onClick={onPalette}
+          title="command palette"
+          className="ml-auto hidden items-center gap-1.5 border border-line-2 px-2.5 py-1.5 font-mono text-[10px] text-fog-2 transition-colors hover:border-amber/50 hover:text-amber md:flex"
+        >
+          ⌘K
+        </button>
+        <button
           onClick={onDemo}
-          className="ml-auto flex items-center gap-2 border border-amber/60 bg-amber/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-amber transition-all hover:bg-amber hover:text-ink-950"
+          className="ml-3 flex items-center gap-2 border border-amber/60 bg-amber/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-amber transition-all hover:bg-amber hover:text-ink-950"
         >
           <span className="inline-block h-0 w-0 border-y-[4px] border-l-[6px] border-y-transparent border-l-current" />
           demo
@@ -226,6 +246,7 @@ function DegradedBanner() {
 export default function App() {
   const [mode, setMode] = useState<ViewMode>("console");
   const [tour, setTour] = useState<"manual" | "present" | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const agg = useMemo(() => aggregate(evaluateAll().cases), []);
   const red = useMemo(() => adversarialSuite(), []);
 
@@ -234,18 +255,31 @@ export default function App() {
     window.setTimeout(() => setTour("present"), 60);
   };
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <ToastProvider>
       <div className="bg-stage min-h-screen">
-        <TopBar mode={mode} onMode={setMode} onDemo={startTour} />
+        <TopBar mode={mode} onMode={setMode} onDemo={startTour} onPalette={() => setPaletteOpen(true)} />
         <DegradedBanner />
         <DemoTour open={tour !== null} onClose={() => setTour(null)} mode={mode} setMode={setMode} preset={tour ?? "manual"} />
         <Onboarding onDemo={startTour} />
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} setMode={setMode} startTour={startTour} />
         <main>
           {mode === "console" ? (
             <>
               <Workstation />
               <CorrelationEngine />
+              <LiveSignals />
               <TriageDesk />
               <PostmortemStudio />
               <OpsConsole />
