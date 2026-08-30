@@ -74,6 +74,7 @@ decision quality.
 | Deliverable | Location |
 | --- | --- |
 | 1 · Solution code + improvement changelog | this repo · `CHANGELOG.md` |
+| 1b · Instructions that shape the agent | `agents/TRIAGE_AGENT.md` — the exact rulebook the agent executes |
 | 2 · Reproduction guide | `REPRODUCTION.md` |
 | 3 · Solution video | `VIDEO_SCRIPT.md` — timed storyboard; record one take with the demo button's narrated tour (deterministic engine ⇒ free retakes) |
 | 4 · Agent trajectories | Report → Evidence → *trajectories* (38 runs: input → tool calls → feedback → checkpoints → scores) |
@@ -94,8 +95,13 @@ decision quality.
 UI (React) → `src/backend/backend.ts` (request ids, validation, latency,
 chaos, routes) → domain services (authz, gates, audit, triage, observability)
 → versioned, migration-ready store (localStorage, memory fallback under
-tests). The agent (`src/engine/engine.ts`) is a pure deterministic function;
-the baseline is the honest 40-line regex "before".
+tests). The agent (`src/engine/engine.ts`) is a pure deterministic function
+that reads the world **only through the adapter boundary**
+(`src/engine/adapters.ts`: catalog, metrics, calendar, memory, runbook,
+identity, transport) — so production is an adapter swap, not an engine
+rewrite, and adapters return data, never instructions. The baseline is the
+honest 40-line regex "before". Full design + decision log:
+`docs/ARCHITECTURE.md`; the path to production: `ROADMAP.md`.
 
 ## Security
 

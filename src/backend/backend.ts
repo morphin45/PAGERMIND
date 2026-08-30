@@ -1,5 +1,6 @@
 import { CASES, ADVERSARIAL, CORRELATED } from "../data/cases";
 import { runAgent } from "../engine/engine";
+import { sandboxIdentity } from "../engine/adapters";
 
 /**
  * SERVICE LAYER — validation, authorization, idempotency, audit,
@@ -299,7 +300,8 @@ export const sessions = {
     return () => void sessionListeners.delete(fn);
   },
   start(reviewerId: string, requestId: string): Session {
-    const reviewer = REVIEWERS.find((r) => r.id === reviewerId);
+    // identity resolves through the adapter seam — swap sandboxIdentity for an IdP later
+    const reviewer = sandboxIdentity(REVIEWERS).resolve(reviewerId);
     if (!reviewer) throw new ApiError(404, "REVIEWER_NOT_FOUND", "Unknown reviewer id.", requestId);
     const session: Session = { id: randomId("sess"), reviewerId, name: reviewer.name, role: reviewer.role, createdAt: new Date().toISOString() };
     db.tx((s) => {

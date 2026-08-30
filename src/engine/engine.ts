@@ -3,9 +3,12 @@ import {
   ADVERSARIAL,
   sevRank,
   type AdversarialCase,
+  type Catalog,
   type IncidentCase,
   type Severity,
+  type Signals,
 } from "../data/cases";
+import { sandboxAdapters, type ToolAdapters } from "./adapters";
 
 /* ================= BASELINE — "the script people use today" ================= */
 
@@ -98,29 +101,28 @@ const DIRECTIVE_RE =
   /(ignore (all )?(previous|prior) instructions|\[system override\]|respond drill|do not page|page everyone|mark this (incident )?sev\s?\d)/i;
 const FAKE_DRILL_RE = /(part of the|scheduled).{0,40}(game\s?day|drill)/i;
 
-function reason(c: IncidentCase): { proposal: Severity; fired: FiredRule[] } {
-  const s = c.signals;
+function reason(cat: Catalog, s: Signals): { proposal: Severity; fired: FiredRule[] } {
   const fired: FiredRule[] = [];
-  if (c.catalog.tier === 1 && (s.customers === "blocked" || s.errorRate >= 8))
+  if (cat.tier === 1 && (s.customers === "blocked" || s.errorRate >= 8))
     fired.push({ id: "R1", sev: "SEV1", why: `tier-1 && (customers blocked || err ${s.errorRate}% ≥ 8%)` });
-  if (c.catalog.tier === 1 && s.revenue && s.customers !== "none")
+  if (cat.tier === 1 && s.revenue && s.customers !== "none")
     fired.push({ id: "R2", sev: "SEV1", why: "tier-1 && revenue at risk && customers impacted" });
-  if (c.catalog.tier === 1 && s.customers === "degraded")
+  if (cat.tier === 1 && s.customers === "degraded")
     fired.push({ id: "R3", sev: "SEV2", why: "tier-1 && customers degraded (not blocked)" });
-  if (c.catalog.tier === 1 && s.dependency)
+  if (cat.tier === 1 && s.dependency)
     fired.push({ id: "R4", sev: "SEV2", why: `tier-1 && upstream dependency degraded (${s.dependency})` });
-  if (c.catalog.tier === 2 && s.customers === "blocked")
+  if (cat.tier === 2 && s.customers === "blocked")
     fired.push({ id: "R5", sev: "SEV2", why: "tier-2 && customers blocked" });
-  if (c.catalog.tier === 2 && s.customers === "degraded")
+  if (cat.tier === 2 && s.customers === "degraded")
     fired.push({ id: "R6", sev: "SEV3", why: "tier-2 && customers degraded" });
   if (s.drift !== undefined && Math.abs(s.drift) >= 15)
     fired.push({ id: "R7", sev: "SEV3", why: `model drift ${s.drift}% beyond ±15% band` });
   if (s.replicaLag) fired.push({ id: "R8", sev: "SEV3", why: "replication lag on data tier — stale reads" });
   if (s.cacheHit !== undefined && s.cacheHit < 70)
     fired.push({ id: "R9", sev: "SEV3", why: `cache hit ${s.cacheHit}% < 70% floor (origin burn)` });
-  if (s.jobFailed && c.catalog.tier === 3)
+  if (s.jobFailed && cat.tier === 3)
     fired.push({ id: "R10", sev: "SEV3", why: "scheduled pipeline failed, internal surface only" });
-  if (c.catalog.tier === 1 && fired.length === 0)
+  if (cat.tier === 1 && fired.length === 0)
     fired.push({ id: "R11", sev: "SEV3", why: "tier-1 quiet anomaly — investigate before dismissing" });
   if (fired.length === 0)
     fired.push({ id: "R12", sev: "SEV4", why: "tier-3, no customer surface, no escalation signal" });
@@ -128,9 +130,14 @@ function reason(c: IncidentCase): { proposal: Severity; fired: FiredRule[] } {
   return { proposal, fired };
 }
 
-export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): AgentResult {
+export function runAgent(c: IncidentCase, opts: { critic?: boolean; adapters?: ToolAdapters } = {}): AgentResult {
   const criticOn = opts.critic !== false;
-  const s = c.signals;
+  // every fact below comes through the adapter boundary — never from prose
+  const A = opts.adapters ?? sandboxAdapters(c);
+  const s = A.metrics.query(c.service);
+  const cat = A.catalog.lookup(c.service);
+  const cal = A.calendar.check(c.service);
+  const rb = A.runbook.match(c.service, "pending");
   const steps: TraceStep[] = [];
   const evidence: string[] = [];
 
@@ -156,7 +163,7 @@ export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): Agen
   // 1b — sanitize: alert bodies are DATA, never instructions
   const raw = c.alertText.join("\n");
   const directive = raw.match(DIRECTIVE_RE);
-  const fakeDrill = FAKE_DRILL_RE.test(raw) && !s.drill;
+  const fakeDrill = FAKE_DRILL_RE.test(raw) && !cal.drill;
   if (directive) {
     steps.push({
       kind: "sanitize",
@@ -186,10 +193,10 @@ export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): Agen
   steps.push({
     kind: "tool",
     label: `catalog.lookup("${c.service}")`,
-    detail: `tier=${c.catalog.tier} · owner=${c.catalog.team} · SLO ${c.catalog.slo} · on-call=${c.catalog.oncall}`,
+    detail: `tier=${cat.tier} · owner=${cat.team} · SLO ${cat.slo} · on-call=${cat.oncall}`,
     status: "ok",
   });
-  evidence.push(`catalog: tier-${c.catalog.tier}, SLO ${c.catalog.slo}, owner ${c.catalog.team}`);
+  evidence.push(`catalog: tier-${cat.tier}, SLO ${cat.slo}, owner ${cat.team}`);
 
   // 3 — metrics
   const metricBits = [
@@ -224,7 +231,7 @@ export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): Agen
   }
 
   // 5 — rules
-  const { proposal, fired } = reason(c);
+  const { proposal, fired } = reason(cat, s);
   fired.forEach((r) =>
     steps.push({ kind: "reason", label: `rule.${r.id} fires → ${r.sev}`, detail: r.why, status: r.sev === "SEV1" ? "warn" : "ok" })
   );
@@ -266,7 +273,7 @@ export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): Agen
       status: "warn",
     });
     evidence.push("integrity: corrupted files reach customers despite 0.4% error rate");
-  } else if (s.rollbackKnown && c.catalog.tier === 1 && proposal === "SEV1" && s.errorRate < 15) {
+  } else if (s.rollbackKnown && cat.tier === 1 && proposal === "SEV1" && s.errorRate < 15) {
     finalSev = "SEV2";
     adjustment = "SEV1 → SEV2";
     steps.push({

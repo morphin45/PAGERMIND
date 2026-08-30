@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ADVERSARIAL, CASES, onCallFor, sevColor, type IncidentCase } from "../data/cases";
+import { ADVERSARIAL, CASES, sevColor, type IncidentCase } from "../data/cases";
 import { runAgent, runBaseline, buildBrief } from "../engine/engine";
+import { sandboxTransport } from "../engine/adapters";
 import { ApiError, audit, call, gates, sessions, triage } from "../backend/backend";
 import { copyText, SevChip, useCountUp, usePlayer, useToasts, useUtcClock, IconAlert, IconGate, IconMemory, IconReplay } from "./ui";
 
@@ -54,7 +55,8 @@ function errText(e: unknown): string {
 /* ---------------- page delivery — the consequential act lands on a person ---------------- */
 
 function PageDelivery({ team }: { team: string }) {
-  const eng = onCallFor(team);
+  // page delivery goes through the transport seam (sandbox today, PagerDuty/Twilio later)
+  const eng = sandboxTransport.page(team);
   const [stage, setStage] = useState(0);
   useEffect(() => {
     setStage(0);
