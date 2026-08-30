@@ -34,6 +34,13 @@ const STEPS: TourStep[] = [
     body: "“Failover probes FIRING — primary unreachable.” The baseline regex script pages six people for this. Watch the agent instead: probes firing but real-user impact is zero, and GameDay is on the calendar. The critic proves the contradiction and auto-resolves under pre-approved rule D-1 — with an audit note. Nobody is woken.",
   },
   {
+    id: "memory",
+    target: "#console",
+    action: () => inject("INC-2201"),
+    title: "Memory carries the past forward",
+    body: "This checkout deploy is failing again — and the agent has seen it before. The purple mem line recalls INC-2144 from five weeks ago: same signature, rollback fixed it in 6 minutes. That prior decision reshapes the recommendation and the runbook it cites. Without memory, every 3 a.m. page starts from zero.",
+  },
+  {
     id: "corruption",
     target: "#console",
     action: () => inject("INC-2208"),

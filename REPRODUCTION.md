@@ -37,10 +37,11 @@ npm run build && npm run preview
 
 1. **Guided tour** — in the console, click the amber **▶ demo** button (top bar).
    A spotlight walks the live product end-to-end: the streaming feed, the
-   GameDay drill auto-resolving under rule D-1, the silent-corruption page
-   waiting at the human gate, approval + audit, chaos mode, then the scored
-   report and the evidence section. Keyboard: ← → / Esc. An *auto* mode
-   advances every 9 s — ideal for a hands-free walkthrough.
+   GameDay drill auto-resolving under rule D-1, a **memory/recurrence** beat
+   (INC-2201 recalls a prior fix), the silent-corruption page waiting at the
+   human gate, approval → page lands on a named on-call engineer, chaos mode,
+   then the scored report and the evidence section. Keyboard: ← → / Esc. An
+   *auto* mode advances every 9 s — ideal for a hands-free walkthrough.
 2. **Host the static build** — `npm run build`, then serve `dist/` from any
    static host (Netlify Drop, Vercel, `npx serve dist`, GitHub Pages). No
    server, no env vars; the whole product is in the artifact.

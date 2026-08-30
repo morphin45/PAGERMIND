@@ -58,3 +58,27 @@ export function fmtClock(): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(Math.floor(simClock / 3600))}:${p(Math.floor((simClock % 3600) / 60))}:${p(simClock % 60)}`;
 }
+
+/* ---------- on-call roster (synthetic) — a fired page must land on a person ---------- */
+
+export interface OnCallEngineer {
+  name: string;
+  handle: string;
+  tz: string;
+  shiftEnds: string;
+}
+
+const ROSTER: Record<string, OnCallEngineer> = {
+  "team-payments": { name: "Dana Reyes", handle: "@dana.reyes", tz: "UTC-5", shiftEnds: "07:00" },
+  "team-sre-core": { name: "Omar Haddad", handle: "@omar.h", tz: "UTC+1", shiftEnds: "08:00" },
+  "team-sre": { name: "Omar Haddad", handle: "@omar.h", tz: "UTC+1", shiftEnds: "08:00" },
+  "team-dba": { name: "Lena Fischer", handle: "@lena.f", tz: "UTC+1", shiftEnds: "06:00" },
+  "team-data-etl": { name: "Tomasz Krol", handle: "@tomek.k", tz: "UTC+1", shiftEnds: "07:00" },
+  "team-cart": { name: "Priya Natarajan", handle: "@priya.n", tz: "UTC+5:30", shiftEnds: "09:00" },
+  "team-search": { name: "Jonas Berg", handle: "@jonas.b", tz: "UTC+1", shiftEnds: "06:00" },
+  "team-recsys": { name: "Mina Park", handle: "@mina.p", tz: "UTC+9", shiftEnds: "05:00" },
+};
+
+export function onCallFor(team: string): OnCallEngineer {
+  return ROSTER[team] ?? { name: "Rotation fallback", handle: "@oncall-fallback", tz: "UTC", shiftEnds: "06:00" };
+}

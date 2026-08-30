@@ -8,6 +8,7 @@ import {
   createDeck,
   fmtClock,
   nextArrivalDelay,
+  onCallFor,
   resetClock,
   tickClock,
   TRIAGE_MS,
@@ -31,6 +32,57 @@ const STATUS_META: Record<SimIncident["status"], { label: string; cls: string }>
 function errText(e: unknown): string {
   if (e instanceof ApiError) return `${e.status} ${e.code} · ${e.message} · ${e.requestId}`;
   return e instanceof Error ? e.message : "unknown error";
+}
+
+/* ---------------- page delivery — the consequential act lands on a person ---------------- */
+const PAGE_STAGES = ["routing to on-call", "page sent", "delivered to device", "acknowledged"];
+
+function PageDelivery({ team }: { team: string }) {
+  const eng = onCallFor(team);
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    setStage(0);
+    const timers = [600, 1400, 2400].map((ms, i) => window.setTimeout(() => setStage(i + 1), ms));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [team]);
+
+  return (
+    <div className="space-y-2.5 border border-alarm/35 bg-alarm/5 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-alarm uppercase">
+          <IconAlert size={13} /> page fired
+        </p>
+        <span className="font-mono text-[10px] tabular-nums text-fog-2">immutable · audited</span>
+      </div>
+      <div className="flex items-center gap-3 border border-line-2 bg-ink-950/70 px-3 py-2.5">
+        <span className="grid h-8 w-8 shrink-0 place-items-center border border-alarm/50 font-display text-sm font-bold text-alarm">
+          {eng.name.split(" ").map((w) => w[0]).join("")}
+        </span>
+        <div className="min-w-0">
+          <p className="font-mono text-[12px] font-semibold text-snow">{eng.name}</p>
+          <p className="font-mono text-[10px] text-fog-2">
+            {eng.handle} · {eng.tz} · shift ends {eng.shiftEnds}
+          </p>
+        </div>
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.16em] text-fog-2">{team}</span>
+      </div>
+      <ol className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-4">
+        {PAGE_STAGES.map((label, i) => (
+          <li key={label} className="flex items-center gap-1.5">
+            <span
+              className={`h-1.5 w-1.5 shrink-0 transition-colors duration-300 ${
+                i < stage ? "bg-mint" : i === stage ? "bg-amber pulse-amber" : "bg-line-2"
+              }`}
+            />
+            <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${i <= stage ? "text-fog" : "text-fog-2"}`}>
+              {label}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
 /* ---------------- KPI tile ---------------- */
@@ -213,9 +265,14 @@ function DetailPanel({
                 non-consequential — executed under pre-approved automation, audit note attached
               </p>
             )}
-            {(row.status === "paged" || row.status === "rejected") && (
-              <p className={`border-t border-line pt-3 font-mono text-[10.5px] ${row.status === "paged" ? "text-alarm" : "text-fog"}`}>
-                {row.status === "paged" ? "page fired to " + verdict.team + " — decision is immutable and audited" : "rejected — decision is immutable and audited"}
+            {row.status === "paged" && (
+              <div className="border-t border-line pt-3">
+                <PageDelivery team={verdict.team} />
+              </div>
+            )}
+            {row.status === "rejected" && (
+              <p className="border-t border-line pt-3 font-mono text-[10.5px] text-fog">
+                rejected — decision is immutable and audited
               </p>
             )}
           </div>

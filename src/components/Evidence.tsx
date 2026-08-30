@@ -121,6 +121,34 @@ function downloadTrajectories(): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
+/** Ground-rule 9 — every claim tied to evidence, in one verifiable artifact. */
+function downloadSnapshot(): void {
+  const { cases } = evaluateAll();
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    seed: "0x2201",
+    headline: aggregate(cases),
+    attribution: ablation(),
+    perCase: cases.map((e) => ({
+      case: e.c.id,
+      title: e.c.title,
+      trap: e.c.gold.trap ?? null,
+      gold: e.c.gold,
+      baseline: { severity: e.baseline.result.severity, team: e.baseline.result.team, score: e.baseline.scores.total, pct: e.baseline.scores.pct },
+      agent: { severity: e.agent.result.severity, team: e.agent.result.team, score: e.agent.scores.total, pct: e.agent.scores.pct },
+    })),
+    auditTrail: "GET /v1/audit — see Ops §; every decision is append-only with request IDs",
+    reproduce: "npm install && npx vitest run  → identical aggregates in <1s, $0.00",
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "pagermind-evidence-snapshot.json";
+  a.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 function AuditConsole() {
   const [result, setResult] = useState<{ checks: Check[]; tookMs: number } | null>(null);
   const [running, setRunning] = useState(false);
@@ -156,6 +184,15 @@ function AuditConsole() {
             }}
           >
             trajectories ↓
+          </button>
+          <button
+            className="btn py-1.5 px-3"
+            onClick={() => {
+              downloadSnapshot();
+              push("ok", "evidence snapshot downloaded", "headline + attribution + per-case scores — every claim in one file");
+            }}
+          >
+            snapshot ↓
           </button>
           <button className="btn-solid py-1.5 px-3.5" onClick={run} disabled={running}>
             {running ? "auditing…" : "run audit"}
