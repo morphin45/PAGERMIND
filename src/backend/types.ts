@@ -29,6 +29,8 @@ export type GateStatus = "pending" | "approved" | "rejected";
 export interface GateProposal {
   id: string;
   caseId: string;
+  /** live-sim incident id (e.g. INC-2206·r2) when staged by the workstation */
+  uid?: string;
   title: string;
   service: string;
   severity: Severity;

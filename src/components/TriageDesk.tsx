@@ -191,6 +191,13 @@ export default function TriageDesk() {
 
   useEffect(() => onChaos(setChaosState), []);
 
+  /* stay live: the workstation stages/decides gates through the same service */
+  useEffect(() => {
+    const onChange = () => void loadGates();
+    window.addEventListener("pm:gates-changed", onChange);
+    return () => window.removeEventListener("pm:gates-changed", onChange);
+  }, [loadGates]);
+
   const signIn = async () => {
     setSigningIn(true);
     try {

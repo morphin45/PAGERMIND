@@ -1,81 +1,83 @@
-# Pagermind — auditable incident triage, baseline vs agent (hackathon entry AW-2201)
+# Pagermind — live incident-triage console
 
-Submitted to the **micro1 Agentic Workflows Hackathon**. All incident data is synthetic; every
-evaluation number is computed by the code in this repo at runtime — nothing is hardcoded in the UI.
+**micro1 Agentic Workflows Hackathon · entry AW-2201.**
+
+Pagermind is a working triage workstation: synthetic incidents stream in, a
+deterministic agent triages each one with a visible tool-grounded trace,
+page-worthy calls stop at a **human approval gate**, and every act — agent or
+human — lands in an append-only audit ledger. The same engine powers the
+scored baseline-vs-agent evaluation.
 
 ## Who has the problem
 
-On-call engineers paging each other with half the context. The bottleneck is not the alerting
-system; it is that **severity lives outside the alert text** — in service tier, blast radius,
-revenue impact, deploy state and the change calendar. Keyword triage therefore both over-pages
-(wakes people for drills) and under-pages (misses silent corruption).
-
-## What this repo contains
-
-| Area | Path | Notes |
-| --- | --- | --- |
-| Evaluation set | `src/data/incidents.ts` | 12 synthetic incidents, gold answers fixed before the agent rules existed |
-| **Baseline** | `src/engine/baseline.ts` | the "script people use today": regex severity + substring team table |
-| **Agent** | `src/engine/agent.ts` | tools (catalog/metrics/history/runbook/calendar) → rule reasoner → verifier → human gate; fully deterministic, evidence-chained |
-| Shared rubric | `src/engine/eval.ts` | identical scoring applied to both arms, plus `ablation()` for design-choice attribution |
-| Evidence | `src/components/Evidence.tsx` | attribution ladder (baseline → tools → critic → memory) + in-browser acceptance audit |
-| **Service layer** | `src/backend/` | api/v1 facade: validation, authz, idempotency, audit ledger, observability, chaos injection |
-| Persistence | `src/backend/db.ts` | versioned schema + migration registry (localStorage, memory fallback in tests) |
-| UI | `src/components/` | war room, live bench, eval board, approval desk, ops console, changelog |
-| Tests | `src/__tests__/pipeline.test.ts` | engine determinism, rubric aggregates, gate state machine |
+On-call engineers. The bottleneck is not alerting — it's that **severity
+lives outside the alert text**: in service tier, blast radius, revenue
+impact, deploy state and the change calendar. Keyword triage therefore
+over-pages (wakes people for drills) and under-pages (misses silent
+corruption). Solving it buys back sleep and makes every page defensible.
 
 ## Quick start
 
 ```bash
 npm install
-npm run dev        # local dev server
-npm run build      # production static build (dist/)
-npx vitest run     # test suite: engine + evaluation + attribution ablation + gate state machine
+npm run dev        # live console at localhost:5173 — incidents start streaming
+npm run build      # static artifact (dist/)
+npx vitest run     # the evaluation: engine + rubric + ablation + gate state machine
 ```
 
-No API keys, no network calls, no environment variables required (see `.env.example` for the
-two optional flags). Runtime for the full evaluation: **< 1s**, cost **$0.00**.
+No API keys, no environment variables, no network. See `.env.example` for the
+two optional developer flags.
 
-## Reproducing the headline numbers
+## What's in the box
 
-`npm run build` serves the site; the eval board computes them live. Or from Node via vitest —
-`src/__tests__/pipeline.test.ts` asserts the exact aggregates:
+| Surface | What it does |
+| --- | --- |
+| **Console** (`CONSOLE` mode) | live incident feed → agent trace replay → approve/reject pages inline |
+| **Gates** (§) | full approval desk: sandbox sign-in, role enforcement (403 audited), immutable decisions (409) |
+| **Ops** (§) | `/v1/health`, structured logs with request ids, audit export, chaos injection (503) |
+| **Report** (`REPORT` mode) | the scored submission: problem, live bench, eval, evidence, changelog, repro, hot take |
 
-| Metric | Baseline | Agent |
-| --- | --- | --- |
-| Rubric score | 30% | 100% |
-| False pages (SEV1 where gold ≠ SEV1) | 5 | 0 |
-| Wrong-team routes | 9 | 0 |
-| Missed criticals (2+ levels under-rated) | 1 | 0 |
+## Submission deliverables → where they live
 
-## The service layer ("backend")
+| Deliverable | Location |
+| --- | --- |
+| **1 · Solution code + improvement changelog** | this repo; `CHANGELOG.md`; agent instructions in `agents/TRIAGE_AGENT.md` |
+| **2 · Reproduction guide** | `REPRODUCTION.md` (clean-env commands, expected output, versions, runtime, cost) |
+| **3 · Solution video** | `VIDEO_SCRIPT.md` — timed storyboard; recorded by the team in one take (the demo is deterministic). Status: script complete, recording is a human task |
+| **4 · Agent trajectories** | REPORT → §04 Evidence → *download trajectory set* (24 runs: input, tool calls, rule fires, verifier feedback, gate states, scores) |
 
-The deployment artifact of this hackathon is a static site, so the service layer runs
-**in-browser** behind a transport-agnostic `call(method, path, body, session)` facade
-(`src/backend/api.ts`). The contract is designed to map 1:1 onto a Node/Fastify process later —
-see `docs/ARCHITECTURE.md` for the REST table, data model, decision log and security review.
+## Ground rules → evidence
 
-What the layer actually enforces (and tests prove):
+| Rule | How we comply |
+| --- | --- |
+| Clear what existed vs added | Starter: Vite/React/TS/Tailwind template only. Everything else is this submission (`agents/TRIAGE_AGENT.md` §Provenance) |
+| Licences & terms | MIT intent; React/Vite/Tailwind/Vitest used per their OSS licences; Google Fonts via their embed terms |
+| Consequential acts sandboxed | All incidents synthetic; pages never fire without reviewer approval; chaos mode is a simulation |
+| Qualified human reviewer | Gates require the `reviewer` role; viewer attempts are denied **and audited** |
+| Legal/ethical, responsible data | Synthetic data only; no PII, no credentials anywhere |
+| Shareable information | Everything in-repo is synthetic or original |
+| No credentials | Verified — grep the repo; `.env.example` holds only non-secret flags |
+| Claims tied to evidence | Every headline number is computed at runtime and asserted in `src/__tests__/pipeline.test.ts` |
+| Judges can reproduce | `REPRODUCTION.md`: clean env → `npm install` → `npx vitest run` → same numbers in <1s |
 
-- **Validation** at the boundary (`422 VALIDATION_FAILED` with machine-readable issues)
-- **Authentication** (`401` for anonymous actors, session rehydration after refresh)
-- **Authorization** (`403` for the viewer role — denials are audited, because `authenticated ≠ authorized`)
-- **Idempotency** (`409 ALREADY_DECIDED` — gate decisions are immutable)
-- **Audit** (append-only ledger with sequence numbers, request ids, exportable as JSON)
-- **Observability** (`/v1/health`, structured logs with request ids, latency metrics)
-- **Failure injection** (chaos toggle → `503 STORAGE_OFFLINE`; health/logs stay up)
+## Architecture in one breath
 
-## Security notes
+UI (React) → `src/backend/api.ts` (request ids, validation, latency, chaos) →
+`src/backend/services.ts` (authz, gates, audit, triage, observability) →
+`src/backend/db.ts` (versioned schema, migrations) → localStorage. The agent
+(`src/engine/agent.ts`) is a pure deterministic function; the baseline
+(`src/engine/baseline.ts`) is the honest 40-line regex "before". Full design,
+API table and decision log: `docs/ARCHITECTURE.md`.
 
-- Sandbox auth by design: reviewer identity is asserted, roles enforced service-side. A real IdP
-  is a transport swap, not an architecture change (documented in the decision log).
-- Errors never carry stack traces across the API boundary.
-- No secrets exist in this repo; nothing sensitive is logged.
-- Consequential acts (pages) require human approval — ground rule 04.
+## Security
+
+Authorization enforced service-side (authenticated ≠ authorized); denials
+audited; decided gates immutable; boundary validation with machine-readable
+422s; no stack traces across the API boundary; corrupted storage fails
+closed; zero secrets.
 
 ## Known limitations & next steps
 
-- The rubric and rule engine were co-designed on these 12 cases → overfitting risk. Next: a
-  held-out set written by reviewers who have not seen the rules.
-- Single-document store is fine at this scale; concurrent writers would need a real DB.
-- Chaos mode simulates storage failure only; network partition semantics are out of scope.
+- Sandbox auth asserts identity (no passwords/IdP) — swap point documented in `docs/ARCHITECTURE.md`.
+- Rubric and rules were co-designed on these 12 cases → hold out a reviewer-written set next.
+- Single-document store suits this scale, not concurrent writers.

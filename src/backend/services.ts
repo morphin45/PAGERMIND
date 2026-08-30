@@ -218,6 +218,47 @@ export const gates = {
     });
   },
 
+  /** Live simulation / triage endpoint stages a consequential act here. */
+  propose(input: {
+    caseId: string;
+    uid: string;
+    title: string;
+    service: string;
+    severity: GateProposal["severity"];
+    team: string;
+    runbookId: string;
+    runbookTitle: string;
+    action: string;
+    confidence: number;
+    evidence: string[];
+  }): GateProposal {
+    const gate = db.tx((s) => {
+      const seq = s.meta.gateSeq ? Number(s.meta.gateSeq) + 1 : s.gates.length + 1;
+      s.meta.gateSeq = String(seq);
+      const g: GateProposal = {
+        id: `gate-${input.caseId}-${seq}`,
+        caseId: input.caseId,
+        title: input.title,
+        service: input.service,
+        severity: input.severity,
+        team: input.team,
+        runbookId: input.runbookId,
+        runbookTitle: input.runbookTitle,
+        action: input.action,
+        pageTarget: `oncall(${input.team})`,
+        confidence: input.confidence,
+        evidence: input.evidence,
+        status: "pending",
+        uid: input.uid,
+      };
+      s.gates.push(g);
+      return { ...g };
+    });
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("pm:gates-changed"));
+    obs.log("warn", `gate.propose ${gate.id} · ${input.severity} ${input.service} — awaiting human`, "sim");
+    return gate;
+  },
+
   decide(
     session: Session | null,
     gateId: string,
@@ -278,6 +319,7 @@ export const gates = {
       `${input.decision === "approve" ? "approved" : "rejected"} ${gateId} · ${session.name}`,
       requestId
     );
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("pm:gates-changed"));
     return updated;
   },
 };

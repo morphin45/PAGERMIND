@@ -69,6 +69,58 @@ function runAudit(): { checks: Check[]; tookMs: number } {
   return { checks, tookMs: Math.round(performance.now() - t0) };
 }
 
+/** Deliverable 4 — one JSON with all 24 runs: input → tool calls → feedback → checkpoints → scores. */
+function downloadTrajectories(): void {
+  const runs = evaluateAll().cases.flatMap((e) => [
+    {
+      arm: "baseline",
+      instructions: "src/engine/baseline.ts — the 40-line regex script",
+      case: e.c.id,
+      input: e.c.alertText,
+      output: { severity: e.baseline.result.severity, team: e.baseline.result.team, action: e.baseline.result.action },
+      how: e.baseline.result.how,
+      evidence: e.baseline.result.evidence,
+      score: e.baseline.scores,
+    },
+    {
+      arm: "pagermind/triage",
+      instructions: "agents/TRIAGE_AGENT.md",
+      case: e.c.id,
+      input: e.c.alertText,
+      steps: e.agent.result.steps,
+      output: {
+        severity: e.agent.result.severity,
+        team: e.agent.result.team,
+        runbook: e.agent.result.runbook,
+        action: e.agent.result.action,
+        confidence: e.agent.result.confidence,
+        page: e.agent.result.page,
+        adjustment: e.agent.result.adjustment,
+      },
+      evidence: e.agent.result.evidence,
+      memory: e.agent.result.memoryNote,
+      humanCheckpoint: e.agent.result.page
+        ? "staged at human gate — requires qualified reviewer approval before firing"
+        : "non-consequential — pre-approved automation, audit note attached",
+      score: e.agent.scores,
+    },
+  ]);
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    seed: "0x2201",
+    engine: "deterministic — byte-identical traces on every machine (timestamps aside)",
+    cases: 12,
+    runs,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "pagermind-trajectories.json";
+  a.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 function AuditConsole() {
   const [result, setResult] = useState<{ checks: Check[]; tookMs: number } | null>(null);
   const [running, setRunning] = useState(false);
@@ -95,9 +147,20 @@ function AuditConsole() {
             acceptance audit — same assertions as the vitest suite, run in your browser
           </span>
         </div>
-        <button className="btn-solid py-1.5 px-3.5" onClick={run} disabled={running}>
-          {running ? "auditing…" : "run audit"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="btn py-1.5 px-3"
+            onClick={() => {
+              downloadTrajectories();
+              push("ok", "trajectory set downloaded", "24 runs · input → tools → feedback → checkpoints → scores");
+            }}
+          >
+            trajectories ↓
+          </button>
+          <button className="btn-solid py-1.5 px-3.5" onClick={run} disabled={running}>
+            {running ? "auditing…" : "run audit"}
+          </button>
+        </div>
       </div>
       <div className="p-5">
         {!result && !running && (
