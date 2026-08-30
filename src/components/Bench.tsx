@@ -62,11 +62,14 @@ export default function Bench() {
     setRunId((r) => r + 1);
   };
 
+  // The gold action's intent is binary for judging: does it wake a human?
+  const goldPages = /page on-call/i.test(c.gold.action) && !/no page/i.test(c.gold.action);
+  const yn = (v: boolean) => (v ? "yes — pages" : "no");
   const rows = [
     ["severity", baseline.severity, agent.severity, c.gold.severity],
     ["team", baseline.team, agent.team, c.gold.team],
     ["runbook", baseline.runbook ?? "—", `${agent.runbook.id} · ${agent.runbook.title}`, `${c.runbook.id} · ${c.runbook.title}`],
-    ["action", baseline.action, agent.action, c.gold.action],
+    ["pages a human?", yn(baseline.page), yn(agent.page), yn(goldPages)],
   ] as const;
 
   return (

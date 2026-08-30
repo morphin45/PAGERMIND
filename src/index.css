@@ -204,16 +204,42 @@
   }
   .is-in .bar-anim { transform: scaleX(1); }
 
-  a.anchor {
-    color: var(--color-fog);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    transition: color 0.2s ease;
-  }
-  a.anchor:hover { color: var(--color-amber); }
+a.anchor {
+  color: var(--color-fog);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
 }
+a.anchor:hover { color: var(--color-amber); }
+
+/* ---------- skeleton loading ---------- */
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+.skel {
+  background: linear-gradient(90deg, var(--color-ink-800) 25%, var(--color-ink-700) 50%, var(--color-ink-800) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+  border: 1px solid var(--color-line);
+}
+
+/* ---------- toasts ---------- */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+.toast-in { animation: toastIn 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}}
 
 @keyframes blinkCursor { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
 @keyframes pulseDot {

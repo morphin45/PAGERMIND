@@ -14,6 +14,9 @@ const CMDS = [
   ["", ""],
   ["# 4 · inspect trajectories", ""],
   ["ls trajectories/", "one JSON trace per case per arm — tool calls, rule fires, gate decisions"],
+  ["", ""],
+  ["# 5 · run the test suite (engine + gate state machine)", ""],
+  ["npx vitest run", "determinism, rubric aggregates, and 401/403/409/422 gate paths"],
 ] as const;
 
 const TREE = [
@@ -31,7 +34,7 @@ export function Repro() {
   return (
     <section id="repro" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="06"
+        index="08"
         kicker="Reproducibility"
         title={
           <>
@@ -77,7 +80,7 @@ export function Repro() {
             <div className="mt-5 border-t border-line pt-4">
               <p className="font-mono text-[10px] tracking-[0.22em] text-fog-2 uppercase">expect to see</p>
               <ul className="mt-2.5 space-y-1.5 text-[13px] text-fog">
-                <li><span className="text-mint">▸</span> baseline aggregate ≈ <span className="font-mono text-snow">29%</span>, agent <span className="font-mono text-snow">100%</span></li>
+                <li><span className="text-mint">▸</span> baseline aggregate ≈ <span className="font-mono text-snow">30%</span>, agent <span className="font-mono text-snow">100%</span></li>
                 <li><span className="text-mint">▸</span> false pages <span className="font-mono text-snow">5 → 0</span>, wrong-team <span className="font-mono text-snow">9 → 0</span></li>
                 <li><span className="text-mint">▸</span> byte-identical trajectories on every run (diff them)</li>
               </ul>
@@ -92,7 +95,7 @@ export function Repro() {
 export function HotTake() {
   return (
     <section id="take" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
-      <SectionHead index="07" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity.<br /><span className="text-amber">It was confidence.</span></>} />
+      <SectionHead index="09" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity.<br /><span className="text-amber">It was confidence.</span></>} />
       <div className="grid gap-6 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <blockquote className="panel relative overflow-hidden p-7 md:p-10">

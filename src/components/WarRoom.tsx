@@ -74,7 +74,7 @@ function TraceReplay() {
           <span className="chip text-mint border-mint/40 bg-mint/10">no page — rule D-1</span>
           <span className="chip text-fog-2">confidence 0.92</span>
           <span className="ml-auto font-mono text-[10px] text-fog-2">
-            {result.steps.length} steps · 6 tools · 0 humans woken
+            {result.steps.length} steps · {result.steps.filter((s) => s.kind === "tool").length} tool calls · 0 humans woken
           </span>
         </div>
       )}
@@ -210,7 +210,7 @@ export default function WarRoom({ agg }: { agg: Aggregate }) {
                 `rubric score ${agg.baselinePct}% → ${agg.agentPct}%`,
                 `false pages ${agg.baselineFalsePages} → ${agg.agentFalsePages}`,
                 `wrong-team routes ${agg.baselineWrongTeam} → ${agg.agentWrongTeam}`,
-                "12 cases · 8 traps · 1 hard case",
+                "12 cases · 9 traps · 1 hard case",
                 "human gate on every page",
                 "baseline = one regex script",
                 "runtime < 1s · cost $0.00",

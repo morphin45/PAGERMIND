@@ -137,3 +137,51 @@ export function useUtcClock() {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())} UTC`;
 }
+
+/* ---------- toasts ---------- */
+export interface Toast {
+  id: number;
+  kind: "ok" | "err";
+  title: string;
+  detail?: string;
+}
+
+let toastSeq = 0;
+
+export function useToasts() {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const dismiss = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
+  const push = (kind: Toast["kind"], title: string, detail?: string) => {
+    toastSeq += 1;
+    const id = toastSeq;
+    setToasts((t) => [...t.slice(-3), { id, kind, title, detail }]);
+    window.setTimeout(() => dismiss(id), 4600);
+  };
+  return { toasts, push, dismiss };
+}
+
+export function ToastShelf({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: number) => void }) {
+  return (
+    <div className="pointer-events-none fixed bottom-5 right-5 z-[60] flex w-[min(360px,90vw)] flex-col gap-2" aria-live="polite">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className={`toast-in pointer-events-auto border px-4 py-3 ${
+            t.kind === "ok" ? "border-mint/40 bg-ink-850" : "border-alarm/45 bg-ink-850"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p className={`font-mono text-[11px] font-bold uppercase tracking-[0.14em] ${t.kind === "ok" ? "text-mint" : "text-alarm"}`}>
+              {t.kind === "ok" ? "✓ " : "✗ "}
+              {t.title}
+            </p>
+            <button onClick={() => dismiss(t.id)} className="font-mono text-[12px] text-fog-2 hover:text-snow" aria-label="dismiss">
+              ×
+            </button>
+          </div>
+          {t.detail && <p className="mt-1 font-mono text-[10.5px] leading-relaxed text-fog">{t.detail}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}

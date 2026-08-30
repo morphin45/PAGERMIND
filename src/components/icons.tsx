@@ -144,3 +144,24 @@ export const IconFlame = (p: P) => (
     <path d="M12 21.5c-4 0-7-2.5-7-6" />
   </svg>
 );
+
+export const IconAlert = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 3L2.5 20h19L12 3z" />
+    <path d="M12 9.5v5M12 17.4v.6" />
+  </svg>
+);
+
+export const IconDownload = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 3.5v11M7.5 10.5l4.5 4.5 4.5-4.5" />
+    <path d="M4 20.5h16" />
+  </svg>
+);
+
+export const IconActivity = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="2.5" y="3.5" width="19" height="17" />
+    <path d="M2.5 15h4l2-6 3 8 2.5-5h7.5" />
+  </svg>
+);

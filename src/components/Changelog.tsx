@@ -14,13 +14,13 @@ const ENTRIES: Entry[] = [
   {
     stage: "Baseline",
     tried: "Started with the script every org writes first: one regex pass over the alert text plus a substring team table. No tools, no memory.",
-    evidence: "Rubric 29% · 5/12 false pages · 9/12 wrong-team routes. Got lucky on keyword-rich cases (INC-2201), catastrophic on quiet ones.",
+    evidence: "Rubric 30% · 5/12 false pages · 9/12 wrong-team routes. Got lucky on keyword-rich cases (INC-2201), catastrophic on quiet ones.",
     decision: "Established the starting point — and proved the failure mode is missing context, not missing cleverness.",
   },
   {
     stage: "Iteration 1",
     tried: "Gave the agent real tools: service-catalog lookup (tier, owner, SLO) and a metrics query (error rate, customer impact, revenue). Replaced keyword severity with a small rule engine over tool outputs.",
-    evidence: "Rubric 29% → 71%. Wrong-team routes 9 → 0 immediately — ownership is a lookup, not a guess.",
+    evidence: "Rubric 30% → 71%. Wrong-team routes 9 → 0 immediately — ownership is a lookup, not a guess.",
     decision: "Kept. Grounding beat pattern-matching on every case where the text and the truth disagreed.",
   },
   {
@@ -52,7 +52,7 @@ const ENTRIES: Entry[] = [
   {
     stage: "Final",
     tried: "Combined: parser → tools (catalog, metrics, history, runbook, calendar) → rule reasoner → verifier → human gate. Same 12 cases, same rubric, both arms re-run from one command.",
-    evidence: "Rubric 29% → 100% · false pages 5 → 0 · wrong-team 9 → 0 · review time 9.5 → 1.5 min · cost $0.00, runtime <1s.",
+    evidence: "Rubric 30% → 100% · false pages 5 → 0 · wrong-team 9 → 0 · review time 9.5 → 1.5 min · cost $0.00, runtime <1s.",
     decision: "Identified the main contribution: the verifier + grounding tools, not the sequence shape. Full trace on every run.",
   },
 ];
@@ -61,11 +61,11 @@ export default function Changelog() {
   return (
     <section id="changelog" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="04"
+        index="06"
         kicker="Improvement changelog"
         title={
           <>
-            How 29% became 100% —
+            How 30% became 100% —
             <br />
             <span className="text-amber">and what we had to delete to get there.</span>
           </>

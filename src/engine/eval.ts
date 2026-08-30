@@ -45,8 +45,11 @@ function scoreArm(
   const team = got.team === c.gold.team ? WEIGHTS.team : 0;
   const runbook = isAgent && runbookId === c.runbook.id ? WEIGHTS.runbook : 0;
   const evidence = got.evidence.length >= 3 ? WEIGHTS.evidence : 0;
-  const trap = !c.gold.trap ? WEIGHTS.trap : isAgent && got.severity === c.gold.severity && got.team === c.gold.team ? WEIGHTS.trap : 0;
-  const max = 90 + WEIGHTS.trap; // trap weight always in denominator for comparability
+  // Trap points are earned only on trap cases (symmetric for both arms);
+  // non-trap cases are scored out of 90 so the denominator stays honest.
+  const trap =
+    c.gold.trap && got.severity === c.gold.severity && got.team === c.gold.team ? WEIGHTS.trap : 0;
+  const max = 90 + (c.gold.trap ? WEIGHTS.trap : 0);
   const total = severity + team + runbook + evidence + trap;
   return { severity, team, runbook, evidence, trap, max, total, pct: Math.round((total / max) * 100) };
 }

@@ -5,6 +5,8 @@ import WarRoom from "./components/WarRoom";
 import Problem from "./components/Problem";
 import Bench from "./components/Bench";
 import EvalBoard from "./components/EvalBoard";
+import TriageDesk from "./components/TriageDesk";
+import OpsConsole from "./components/OpsConsole";
 import Changelog from "./components/Changelog";
 import Architecture from "./components/Architecture";
 import { Repro, HotTake, Footer } from "./components/Closing";
@@ -20,6 +22,8 @@ export default function App() {
         <Problem agg={agg} />
         <Bench />
         <EvalBoard />
+        <TriageDesk />
+        <OpsConsole />
         <Changelog />
         <Architecture />
         <Repro />
