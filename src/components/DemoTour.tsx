@@ -2,6 +2,103 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ViewMode } from "../App";
 import { IconPulse, IconX } from "./icons";
 
+/* ---------------- narration ---------------- */
+
+/** Voice-over script — one paragraph per step, ~600 words total ≈ 4:30 spoken. */
+const VOICE: Record<string, string> = {
+  intro:
+    "Welcome to Pagermind. This is not a slideshow. It is a working incident triage console. Synthetic alerts arrive continuously, a deterministic agent triages each one in front of you, and every consequential action waits for a qualified human. Every claim you hear can be re-verified in the browser, live.",
+  feed:
+    "The console runs on a sandbox clock. Alerts arrive, the agent triages each one, and every row ends in one of three outcomes: auto-resolved, waiting at the human gate, or paged. The right panel replays the exact trace the engine computed. Same input, same trace, on every machine.",
+  drill:
+    "Here is the hardest case. Failover probes firing, primary unreachable. A keyword script alerts six engineers for this. But the agent sees probes firing while real user impact is zero, and a scheduled drill on the calendar. The critic proves the contradiction, and the incident auto-resolves under a pre-approved rule. No one is disturbed. That is the entire thesis, in one case.",
+  recurrence:
+    "Now the same service fails again, and this time it is real. Memory recalls the previous incident: same signature, fixed by a rollback in six minutes. The runbook the agent cites is not a guess. It is the one that already worked. Carrying context forward is what separates this from a chatbot.",
+  corruption:
+    "Silent corruption is the case keywords always miss. Exports succeed, the error rate is a fraction of a percent, nothing looks urgent, yet the data arrives corrupted. The agent reads the corruption signal, escalates to severity two, and stages the page at a human gate. Nothing is sent without a person.",
+  gate:
+    "You are now the qualified human. Sign in as a reviewer, read the evidence chain, and approve. The page is sent, reaches a real on-call engineer, and the decision is written to an immutable audit ledger. Try the same as a guest. The request is declined, and that is recorded too. Authenticated is not the same as authorized.",
+  ops:
+    "Every action carries a request id you can trace through structured logs. Export the audit ledger as a reviewable record. Turn on chaos, and the whole service degrades gracefully. Triage retries, gates stay closed, health stays honest. Failure is a designed state, not an accident.",
+  bench:
+    "Same engine, now scored. Report mode runs the evaluation on the same twelve cases against the baseline regex script, under one shared rubric. Rubric score: thirty percent to one hundred. False pages: five to zero. Wrong team routes: nine to zero. Recomputed live. Never typed in.",
+  evidence:
+    "And here is the proof layer. The attribution ladder ablates one design choice at a time: tools, critic, memory. So you can see exactly what each one bought. Run the acceptance audit: the assertions from the test suite, re-executed in your browser. Download the trajectory set: every tool call and checkpoint, ready for review.",
+  outro:
+    "That is the demo. Clean environment, one command, identical numbers in under a second, at zero cost. Pagermind does not ask you to trust the agent. It shows its work, hands you the keys, and lets you verify everything yourself. Thank you.",
+};
+
+/** speaking pace → ms per word, plus settle buffer per step */
+const MS_PER_WORD = 430;
+
+function durationFor(text: string | undefined): number {
+  if (!text) return 8000;
+  return Math.round((text.split(/\s+/).length * MS_PER_WORD) / 100) * 100 + 1400;
+}
+
+/** Chain sentence-sized utterances (sidesteps long-utterance stalls); returns cancel. */
+function useSpeech() {
+  const supported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const [speaking, setSpeaking] = useState(false);
+  const resumeTimer = useRef<number | null>(null);
+  const live = useRef(true);
+
+  const stop = useCallback(() => {
+    live.current = false;
+    if (resumeTimer.current) window.clearInterval(resumeTimer.current);
+    if (supported) window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [supported]);
+
+  const speak = useCallback(
+    (text: string, onDone: () => void) => {
+      if (!supported) {
+        onDone();
+        return;
+      }
+      window.speechSynthesis.cancel();
+      live.current = true;
+      setSpeaking(true);
+      const parts = text.match(/[^.!?—]+[.!?—]+/g) ?? [text];
+      let i = 0;
+      const next = () => {
+        if (!live.current) return;
+        if (i >= parts.length) {
+          setSpeaking(false);
+          onDone();
+          return;
+        }
+        const u = new SpeechSynthesisUtterance(parts[i++].trim());
+        u.rate = 1.03;
+        u.pitch = 1;
+        const voices = window.speechSynthesis.getVoices();
+        const v = voices.find((x) => /en[-_](US|GB)/i.test(x.lang)) ?? voices[0];
+        if (v) u.voice = v;
+        u.onend = next;
+        u.onerror = next;
+        window.speechSynthesis.speak(u);
+      };
+      next();
+      // Chrome stalls long sessions — nudge it awake periodically.
+      if (resumeTimer.current) window.clearInterval(resumeTimer.current);
+      resumeTimer.current = window.setInterval(() => {
+        if (live.current) window.speechSynthesis.resume();
+      }, 3000);
+    },
+    [supported]
+  );
+
+  useEffect(() => {
+    return () => {
+      live.current = false;
+      if (resumeTimer.current) window.clearInterval(resumeTimer.current);
+      if (supported) window.speechSynthesis.cancel();
+    };
+  }, [supported]);
+
+  return { supported, speaking, speak, stop };
+}
+
 interface TourStep {
   id: string;
   target?: string; // css selector — spotlight follows it live
@@ -91,16 +188,31 @@ export default function DemoTour({
   onClose,
   mode,
   setMode,
+  preset,
 }: {
   open: boolean;
   onClose: () => void;
   mode: ViewMode;
   setMode: (m: ViewMode) => void;
+  preset: "manual" | "present";
 }) {
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [auto, setAuto] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(false);
   const measureTimer = useRef<number | null>(null);
+  const { supported, speaking, speak, stop } = useSpeech();
+
+  const advance = useCallback(() => setIdx((i) => Math.min(i + 1, STEPS.length - 1)), []);
+  const close = useCallback(() => {
+    stop();
+    onClose();
+  }, [stop, onClose]);
+
+  /* silence the narrator whenever the tour is hidden */
+  useEffect(() => {
+    if (!open) stop();
+  }, [open, stop]);
 
   const step = STEPS[idx];
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -160,26 +272,43 @@ export default function DemoTour({
     };
   }, [open, idx, measure, setMode, reduced]);
 
-  /* reset when the tour re-opens */
+  /* reset when the tour re-opens; the present preset enables voice + auto */
   useEffect(() => {
     if (open) {
       setIdx(0);
-      setAuto(false);
+      setAuto(preset === "present");
+      setVoiceOn(preset === "present" && supported);
     }
-  }, [open]);
+  }, [open, preset, supported]);
 
-  /* optional auto-advance */
+  /* narrator: read the current step, then hand control back to auto-advance */
+  useEffect(() => {
+    if (!open || !voiceOn) return;
+    const text = VOICE[STEPS[idx].id];
+    if (!text) return;
+    let t: number | undefined;
+    speak(text, () => {
+      if (auto && idx < STEPS.length - 1) t = window.setTimeout(advance, 1300);
+    });
+    return () => {
+      stop();
+      if (t) window.clearTimeout(t);
+    };
+  }, [open, idx, voiceOn, auto, speak, stop, advance]);
+
+  /* timed auto-advance — used when the narrator is off or unavailable */
   useEffect(() => {
     if (!open || !auto || idx >= STEPS.length - 1) return;
-    const t = window.setTimeout(() => setIdx((i) => Math.min(i + 1, STEPS.length - 1)), 9000);
+    if (voiceOn && supported) return; // narration drives the pace
+    const t = window.setTimeout(advance, durationFor(VOICE[STEPS[idx].id]));
     return () => window.clearTimeout(t);
-  }, [open, auto, idx]);
+  }, [open, auto, idx, voiceOn, supported, advance]);
 
   /* keyboard */
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
       if (e.key === "ArrowRight") setIdx((i) => Math.min(i + 1, STEPS.length - 1));
       if (e.key === "ArrowLeft") setIdx((i) => Math.max(i - 1, 0));
     };
@@ -231,6 +360,14 @@ export default function DemoTour({
             <span className="font-mono text-[10px] tracking-[0.24em] text-fog-2 uppercase">
               guided demo · {idx + 1}/{STEPS.length}
             </span>
+            {speaking && (
+              <span className="eq" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            )}
+            {preset === "present" && <span className="chip text-mint border-mint/40 hidden sm:inline">presenting</span>}
             <div className="ml-auto flex items-center gap-1.5">
               {STEPS.map((s, i) => (
                 <button
@@ -243,7 +380,24 @@ export default function DemoTour({
                 />
               ))}
             </div>
-            <button onClick={onClose} aria-label="close tour" className="font-mono text-[13px] text-fog-2 hover:text-alarm">
+            {supported && (
+              <button
+                onClick={() => {
+                  setVoiceOn((v) => {
+                    const nv = !v;
+                    if (!nv) stop();
+                    return nv;
+                  });
+                }}
+                aria-pressed={voiceOn}
+                className={`font-mono text-[9px] tracking-[0.18em] uppercase border px-2 py-1 transition-colors ${
+                  voiceOn ? "text-amber border-amber/60 bg-amber/10" : "text-fog-2 border-line-2 hover:text-fog"
+                }`}
+              >
+                {voiceOn ? "voice on" : "voice off"}
+              </button>
+            )}
+            <button onClick={close} aria-label="close tour" className="font-mono text-[13px] text-fog-2 hover:text-alarm">
               <IconX size={13} />
             </button>
           </div>
