@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { evaluateAll, aggregate } from "./engine/eval";
 import TopBar from "./components/TopBar";
 import Workstation from "./components/Workstation";
+import CorrelationEngine from "./components/CorrelationEngine";
+import PostmortemStudio from "./components/PostmortemStudio";
 import TriageDesk from "./components/TriageDesk";
 import OpsConsole from "./components/OpsConsole";
 import Problem from "./components/Problem";
