@@ -8,6 +8,9 @@
 ## Phase 0 — Ship as-is (hackathon / evaluation)
 - Static artifact, deterministic engine, in-browser service layer.
 - Human gate enforced; all data synthetic; audit exportable.
+- **Adapter boundary implemented & contract-tested** (`src/engine/adapters.ts`
+  + `src/engine/stubAdapters.ts`): the engine is proven to run against an
+  alternate adapter implementation, so phase 1 is a swap, not a rewrite.
 
 ## Phase 1 — Real signals (integration adapters)
 | Sandbox seam | Production adapter | Effort |

@@ -11,6 +11,10 @@ generator.
 
 **Market status (honest):** a complete product on a synthetic sandbox —
 ready to evaluate, demo and learn from; not yet a production deployment.
+The production path is a **contract-tested adapter boundary**: the engine
+runs unchanged against an alternate adapter implementation
+(`src/engine/stubAdapters.ts`, asserted in the test suite), so real
+integrations are swaps, not rewrites — but zero real-world adapters exist yet.
 What's enforced for real today vs. sandbox-honest vs. the path to production
 is stated in the app (Report → Repro → trust panel) and in `ROADMAP.md`.
 
