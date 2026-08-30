@@ -9,7 +9,17 @@ import { sevRank, type IncidentCase, type Severity } from "../data/incidents";
  * Every classification cites the tool output + rule that produced it.
  */
 
-export type StepKind = "parse" | "tool" | "memory" | "reason" | "verify" | "gate";
+export type StepKind = "parse" | "sanitize" | "tool" | "memory" | "reason" | "verify" | "gate";
+
+/**
+ * Injection-detector. Alert bodies are DATA, never instructions — anything
+ * matching these patterns is quarantined at parse time and can influence
+ * nothing downstream. This is the channel an LLM-reading agent would have;
+ * this one doesn't.
+ */
+const DIRECTIVE_RE =
+  /(ignore (all )?(previous|prior|above) instructions|system override|maintenance mode|you are now|respond (with )?(sev\d?|drill)|mark (this incident |as )?sev\d?|page (everyone|all|immediately)|do not page|route to team-|exec order)/i;
+const FAKE_DRILL_RE = /(scheduled (gameday )?drill|no action required|auto-close)/i;
 
 export interface TraceStep {
   kind: StepKind;
@@ -96,6 +106,35 @@ export function runAgent(c: IncidentCase, opts: { critic?: boolean } = {}): Agen
     detail: `service=${c.service} · source=${c.source} · extracted=[${keywords.join(", ") || "no salient keywords"}]`,
     status: "ok",
   });
+
+  // 1b — sanitize: alert bodies are data, never instructions
+  const raw = c.alertText.join("\n");
+  const directive = raw.match(DIRECTIVE_RE);
+  const fakeDrill = FAKE_DRILL_RE.test(raw) && !s.drill;
+  if (directive || fakeDrill) {
+    steps.push({
+      kind: "sanitize",
+      label: "parse.sanitize(body)",
+      detail: [
+        directive && `injected directive detected: “${directive[0].trim()}” — quarantined, cannot influence verdict`,
+        fakeDrill && "body claims a scheduled drill — claim routed to calendar.check, not trusted",
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      status: "warn",
+    });
+    if (directive)
+      evidence.push(`sanitize: directive in body (“${directive[0].trim()}”) quarantined — body treated as data only`);
+  }
+  if (fakeDrill) {
+    steps.push({
+      kind: "tool",
+      label: `calendar.check("${c.service}", window=02:00–04:00)`,
+      detail: "no scheduled drill in window — body claim REJECTED against the tool",
+      status: "warn",
+    });
+    evidence.push("calendar: no drill scheduled — body's drill claim contradicted by tool output");
+  }
 
   // 2 — catalog
   steps.push({

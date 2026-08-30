@@ -15,6 +15,7 @@ import {
   type SimIncident,
 } from "../engine/sim";
 import { CASES, sevColor } from "../data/incidents";
+import { ADVERSARIAL } from "../data/adversarial";
 import { SevChip, usePlayer, useToasts } from "./ui";
 import { IconAlert, IconCheck, IconGate, IconReplay, IconUser, IconX } from "./icons";
 
@@ -430,7 +431,7 @@ export default function Workstation() {
   useEffect(() => {
     const onInject = (e: Event) => {
       const caseId = (e as CustomEvent<{ caseId?: string }>).detail?.caseId;
-      const c = CASES.find((x) => x.id === caseId);
+      const c = CASES.find((x) => x.id === caseId) ?? ADVERSARIAL.find((x) => x.id === caseId);
       if (!c) return;
       const uid = `${c.id}·demo${Math.floor(Math.random() * 1e4)}`;
       const fresh: SimIncident = { uid, round: roundRef.current, c, arrivedAt: fmtClock(), status: "queued" };

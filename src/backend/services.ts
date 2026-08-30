@@ -1,4 +1,5 @@
 import { CASES } from "../data/incidents";
+import { ADVERSARIAL } from "../data/adversarial";
 import { runAgent } from "../engine/agent";
 import { db } from "./db";
 import {
@@ -164,7 +165,7 @@ export const sessions = {
 
 export const triage = {
   propose(caseId: string, requestId: string) {
-    const c = CASES.find((x) => x.id === caseId);
+    const c = CASES.find((x) => x.id === caseId) ?? ADVERSARIAL.find((x) => x.id === caseId);
     if (!c) throw new ApiError(404, "CASE_NOT_FOUND", `No incident ${caseId}.`, requestId);
     const verdict = runAgent(c);
     obs.log("info", `triage.propose ${caseId} → ${verdict.severity} · ${verdict.team}`, requestId);

@@ -40,7 +40,8 @@ two optional developer flags.
 | **Console** (`CONSOLE` mode) | live incident feed → agent trace replay → approve/reject pages inline |
 | **Gates** (§) | full approval desk: sandbox sign-in, role enforcement (403 audited), immutable decisions (409) |
 | **Ops** (§) | `/v1/health`, structured logs with request ids, audit export, chaos injection (503) |
-| **Report** (`REPORT` mode) | the scored submission: problem, live bench, eval, evidence, changelog, repro, hot take |
+| **Red Team** (§) | 6 poisoned alerts scored as an adversarial axis — agent resists 6/6 via `parse.sanitize`, baseline 0/6 |
+| **Report** (`REPORT` mode) | the scored submission: problem, bench, eval, evidence, red team, changelog, repro, hot take |
 
 ## Submission deliverables → where they live
 

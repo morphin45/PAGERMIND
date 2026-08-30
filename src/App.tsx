@@ -7,6 +7,7 @@ import OpsConsole from "./components/OpsConsole";
 import Problem from "./components/Problem";
 import Bench from "./components/Bench";
 import EvalBoard from "./components/EvalBoard";
+import RedTeam from "./components/RedTeam";
 import Evidence from "./components/Evidence";
 import Changelog from "./components/Changelog";
 import Architecture from "./components/Architecture";
@@ -18,19 +19,25 @@ export type ViewMode = "console" | "report";
 
 export default function App() {
   const [mode, setMode] = useState<ViewMode>("console");
-  const [tourOpen, setTourOpen] = useState(false);
+  const [tour, setTour] = useState<"manual" | "present" | null>(null);
   const agg = useMemo(() => aggregate(evaluateAll().cases), []);
 
   const startTour = () => {
     setMode("console"); // the tour walks console → report itself
-    window.setTimeout(() => setTourOpen(true), 60);
+    window.setTimeout(() => setTour("present"), 60); // narrated by default
   };
 
   return (
     <ToastProvider>
       <div className="bg-stage min-h-screen">
         <TopBar mode={mode} onMode={setMode} onDemo={startTour} />
-        <DemoTour open={tourOpen} onClose={() => setTourOpen(false)} mode={mode} setMode={setMode} />
+        <DemoTour
+          open={tour !== null}
+          onClose={() => setTour(null)}
+          mode={mode}
+          setMode={setMode}
+          preset={tour ?? "manual"}
+        />
         <main>
           {mode === "console" ? (
             <>
@@ -67,6 +74,7 @@ export default function App() {
               <Bench />
               <EvalBoard />
               <Evidence />
+              <RedTeam />
               <TriageDesk />
               <OpsConsole />
               <Changelog />

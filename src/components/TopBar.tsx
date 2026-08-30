@@ -13,6 +13,7 @@ const REPORT_LINKS = [
   ["#bench", "Bench"],
   ["#eval", "Eval"],
   ["#evidence", "Evidence"],
+  ["#redteam", "Red Team"],
   ["#changelog", "Changelog"],
   ["#arch", "Arch"],
   ["#repro", "Repro"],
