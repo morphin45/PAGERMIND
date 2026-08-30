@@ -25,6 +25,11 @@ npm run build      # static artifact (dist/)
 npx vitest run     # the evaluation: engine + rubric + ablation + gate state machine
 ```
 
+**Demoing it:** click the amber **▶ demo** button in the top bar — a guided,
+spotlight-driven tour runs the real product end-to-end (hard cases injected
+on cue, human gate, audit ledger, chaos mode, scored report, evidence &
+trajectories). Full hosting/recording instructions: `REPRODUCTION.md` §3.
+
 No API keys, no environment variables, no network. See `.env.example` for the
 two optional developer flags.
 

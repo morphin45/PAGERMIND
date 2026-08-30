@@ -12,17 +12,25 @@ import Changelog from "./components/Changelog";
 import Architecture from "./components/Architecture";
 import { Repro, HotTake, Footer } from "./components/Closing";
 import { ToastProvider } from "./components/ui";
+import DemoTour from "./components/DemoTour";
 
 export type ViewMode = "console" | "report";
 
 export default function App() {
   const [mode, setMode] = useState<ViewMode>("console");
+  const [tourOpen, setTourOpen] = useState(false);
   const agg = useMemo(() => aggregate(evaluateAll().cases), []);
+
+  const startTour = () => {
+    setMode("console"); // the tour walks console → report itself
+    window.setTimeout(() => setTourOpen(true), 60);
+  };
 
   return (
     <ToastProvider>
       <div className="bg-stage min-h-screen">
-        <TopBar mode={mode} onMode={setMode} />
+        <TopBar mode={mode} onMode={setMode} onDemo={startTour} />
+        <DemoTour open={tourOpen} onClose={() => setTourOpen(false)} mode={mode} setMode={setMode} />
         <main>
           {mode === "console" ? (
             <>

@@ -13,7 +13,7 @@ import {
   TRIAGE_MS,
   type SimIncident,
 } from "../engine/sim";
-import { sevColor } from "../data/incidents";
+import { CASES, sevColor } from "../data/incidents";
 import { SevChip, usePlayer, useToasts } from "./ui";
 import { IconAlert, IconCheck, IconGate, IconReplay, IconUser, IconX } from "./icons";
 
@@ -316,6 +316,9 @@ export default function Workstation() {
   const rowsRef = useRef<SimIncident[]>([]);
   rowsRef.current = rows;
 
+  const roundRef = useRef(1);
+  roundRef.current = round;
+
   const patch = useCallback((uid: string, p: Partial<SimIncident>) => {
     setRows((rs) => rs.map((r) => (r.uid === uid ? { ...r, ...p } : r)));
   }, []);
@@ -364,6 +367,24 @@ export default function Workstation() {
     deckRef.current = createDeck(1);
     push("ok", "simulation reset", "deck re-seeded · audit ledger intentionally preserved");
   };
+
+  /* guided-demo hook: inject a specific incident on cue (pm:inject) */
+  useEffect(() => {
+    const onInject = (e: Event) => {
+      const caseId = (e as CustomEvent<{ caseId?: string }>).detail?.caseId;
+      const c = CASES.find((x) => x.id === caseId);
+      if (!c) return;
+      const uid = `${c.id}·demo${Math.floor(Math.random() * 1e4)}`;
+      const fresh: SimIncident = { uid, round: roundRef.current, c, arrivedAt: fmtClock(), status: "queued" };
+      setRows((rs) => [fresh, ...rs].slice(0, 16));
+      setSelected(uid);
+      later(380, () => patch(uid, { status: "triaging" }));
+      later(380 + TRIAGE_MS, () => resolve(uid));
+      push("ok", `${c.id} injected on cue`, `${c.service} — ${c.title}`);
+    };
+    window.addEventListener("pm:inject", onInject);
+    return () => window.removeEventListener("pm:inject", onInject);
+  }, [later, patch, resolve, push]);
 
   const kpi = {
     auto: rows.filter((r) => r.status === "auto").length,

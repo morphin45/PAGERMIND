@@ -19,7 +19,15 @@ const REPORT_LINKS = [
   ["#take", "Take"],
 ] as const;
 
-export default function TopBar({ mode, onMode }: { mode: ViewMode; onMode: (m: ViewMode) => void }) {
+export default function TopBar({
+  mode,
+  onMode,
+  onDemo,
+}: {
+  mode: ViewMode;
+  onMode: (m: ViewMode) => void;
+  onDemo: () => void;
+}) {
   const clock = useUtcClock();
   const links = mode === "console" ? CONSOLE_LINKS : REPORT_LINKS;
 
@@ -34,7 +42,7 @@ export default function TopBar({ mode, onMode }: { mode: ViewMode; onMode: (m: V
           <span className="chip hidden sm:inline text-mint border-mint/40">live</span>
         </a>
 
-        <nav className="ml-auto hidden md:flex items-center gap-5">
+        <nav className="ml-6 hidden md:flex items-center gap-5">
           {links.map(([href, label]) => (
             <a key={href} href={href} className="anchor">
               {label}
@@ -42,8 +50,17 @@ export default function TopBar({ mode, onMode }: { mode: ViewMode; onMode: (m: V
           ))}
         </nav>
 
+        {/* guided demo */}
+        <button
+          onClick={onDemo}
+          className="ml-auto md:ml-6 flex items-center gap-2 border border-amber/60 bg-amber/10 px-3 py-1.5 font-mono text-[10px] tracking-[0.14em] uppercase text-amber transition-all hover:bg-amber hover:text-ink-950"
+        >
+          <span className="inline-block h-0 w-0 border-y-[4px] border-l-[6px] border-y-transparent border-l-current" />
+          demo
+        </button>
+
         {/* mode switch */}
-        <div className="ml-auto md:ml-6 flex items-center border border-line-2">
+        <div className="ml-3 flex items-center border border-line-2">
           <button
             onClick={() => onMode("console")}
             className={`px-3 py-1.5 font-mono text-[10px] tracking-[0.14em] uppercase transition-colors ${

@@ -33,6 +33,21 @@ For the static artifact the judges receive:
 npm run build && npm run preview
 ```
 
+### Showing it to judges (the demo)
+
+1. **Guided tour** — in the console, click the amber **▶ demo** button (top bar).
+   A spotlight walks the live product end-to-end: the streaming feed, the
+   GameDay drill auto-resolving under rule D-1, the silent-corruption page
+   waiting at the human gate, approval + audit, chaos mode, then the scored
+   report and the evidence section. Keyboard: ← → / Esc. An *auto* mode
+   advances every 9 s — ideal for a hands-free walkthrough.
+2. **Host the static build** — `npm run build`, then serve `dist/` from any
+   static host (Netlify Drop, Vercel, `npx serve dist`, GitHub Pages). No
+   server, no env vars; the whole product is in the artifact.
+3. **Record the submission video** — follow `VIDEO_SCRIPT.md` beat-by-beat
+   with the guided tour driving the screen. The engine is deterministic, so
+   retakes are free. (~5 min, one take.)
+
 ## 4 · Run the baseline
 
 The baseline is `src/engine/baseline.ts` — the 40-line regex script. It is not
