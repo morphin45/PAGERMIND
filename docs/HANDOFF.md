@@ -7,10 +7,13 @@ evaluation, resists poisoned alerts, and reproduces from a clean machine.
 
 ## Completed work
 - Live console: streaming feed, agent traces, gates, page delivery, storm
-  correlation, postmortem studio, ops (health/logs/audit/chaos).
+  correlation, postmortem studio, ops (health/logs/audit/chaos), service-health
+  strip, MTTD, ⌘K command palette, first-run briefing, degraded-mode banner.
+- Live external adapter: GitHub public Status API, read-only, advisory triage
+  (`src/engine/live.ts`) — the first production-shaped integration.
 - Report mode: problem → bench → eval → evidence (attribution + live audit +
-  exports) → red team → changelog → architecture → repro → hot take.
-- Narrated guided tour (voice + spotlight + auto mode, < 5 min).
+  exports) → red team → changelog → architecture → repro (+ trust panel) → hot take.
+- Narrated guided tour (13 beats, voice + spotlight + auto mode, ~5 min).
 - Service layer: api/v1 facade, authz (401/403/409/422), append-only audit,
   versioned storage with migrations, chaos injection.
 - Adapter boundary (`src/engine/adapters.ts`): engine consumes tools/identity/

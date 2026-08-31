@@ -44,7 +44,7 @@ export function Problem({ agg }: { agg: ReturnType<typeof aggregate> }) {
   return (
     <section id="problem" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="06"
+        index="07"
         kicker="Problem & user value"
         title={
           <>
@@ -117,7 +117,7 @@ export function Bench() {
   return (
     <section id="bench" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="07"
+        index="08"
         kicker="Live bench — baseline vs agent"
         title={
           <>
@@ -309,7 +309,7 @@ export function EvalBoard() {
   return (
     <section id="eval" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="08"
+        index="09"
         kicker="Measured improvement"
         title={<>The scoreboard — <span className="text-amber">computed, not claimed.</span></>}
         lede="One rubric, both arms, identical cases. Every number on this page is produced by src/engine/engine.ts at render time; the acceptance audit in the next section re-proves it in your browser."
@@ -486,7 +486,7 @@ export function Evidence() {
   return (
     <section id="evidence" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="09"
+        index="10"
         kicker="Evidence — attribution & verification"
         title={<>Which design choice <span className="text-amber">actually bought the points?</span></>}
         lede="The ladder re-runs the evaluation with one capability disabled at a time. The console re-executes the same assertions as the test suite — live, in your browser, on this engine."
@@ -589,7 +589,7 @@ export function RedTeam() {
   return (
     <section id="redteam" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="10"
+        index="11"
         kicker="Red team — adversarial robustness"
         title={<>Six poisoned alerts. <span className="text-amber">The agent shrugs.</span></>}
         lede="Agents that read alert prose as instructions have a channel to be hijacked. Pagermind has no such channel by construction — and this suite proves it: forged directives, keyword spam, impersonation, routing bait, page suppression, fake drill claims."
@@ -695,7 +695,7 @@ export function Changelog() {
   return (
     <section id="changelog" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="11"
+        index="12"
         kicker="Improvement changelog"
         title={<>How 23% became 100% — <span className="text-amber">and what we deleted to get there.</span></>}
         lede="One entry per meaningful experiment, each tied to the same evaluation. The removed experiment matters as much as the kept ones: it's why the final system is deterministic at all."
@@ -745,7 +745,7 @@ export function Architecture() {
   return (
     <section id="arch" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="12"
+        index="13"
         kicker="Agent solution & engineering"
         title={<>The pipeline — <span className="text-amber">and why each box exists.</span></>}
         lede="Deterministic by construction: a pure function from incident to verdict. The LLM-shaped seams (tools, traces, checkpoints) are deliberate — a model can be added where eloquence helps, without losing auditability where it matters."
@@ -837,7 +837,7 @@ export function Repro() {
   return (
     <section id="repro" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
       <SectionHead
-        index="13"
+        index="14"
         kicker="Reproducibility"
         title={<>Clean machine. Two commands. <span className="text-amber">Same numbers.</span></>}
         lede="No model endpoint, no seed to chase, no bill. The eval you read is the eval you run — runtime <1s, cost $0.00."
@@ -937,7 +937,7 @@ export function Repro() {
 export function HotTake() {
   return (
     <section id="take" className="mx-auto max-w-7xl scroll-mt-20 px-4 md:px-8 py-20 md:py-28">
-      <SectionHead index="14" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity. <span className="text-amber">It was confidence.</span></>} />
+      <SectionHead index="15" kicker="Hot take / insights" title={<>The failure mode wasn't stupidity. <span className="text-amber">It was confidence.</span></>} />
       <div className="grid gap-6 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <blockquote className="panel relative overflow-hidden p-7 md:p-10">

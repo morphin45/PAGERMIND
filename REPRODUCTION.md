@@ -29,11 +29,13 @@ npm run dev
 Open `http://localhost:5173`. Incidents begin streaming immediately.
 
 To see the whole product narrated, click the amber **▶ demo** button (top
-bar). It walks: live feed → GameDay drill auto-resolve → the injection
-attack that fails → the 4-alert storm collapsing to one incident → the human
-gate (sign in as *Priya Natarajan*, approve a page, watch it land on the
-on-call engineer) → the postmortem → chaos mode → the scored report.
-**auto** mode advances on its own (~4:40 total) — record this for the video.
+bar). It walks 13 beats: live feed → GameDay drill auto-resolve → the
+injection attack that fails → the 4-alert storm collapsing to one incident →
+real signals from the live adapter → the human gate (sign in as *Priya
+Natarajan*, approve a page, watch it land on the on-call engineer) → the
+postmortem → chaos mode → the scored bench, evidence and red-team matrix.
+**auto** mode advances on its own (~5:00 total) — record this for the video
+(beat timings in `VIDEO_SCRIPT.md`).
 
 ## 3 · Run the BASELINE and the EVALUATION
 
