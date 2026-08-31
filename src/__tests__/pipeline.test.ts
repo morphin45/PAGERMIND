@@ -10,6 +10,7 @@ import {
   runBaseline,
 } from "../engine/engine";
 import { ApiError, audit, db, gates, sessions, validateDecision } from "../backend/backend";
+import { stubAdapters } from "../engine/stubAdapters";
 
 /* ---------------- engine determinism ---------------- */
 
@@ -145,5 +146,54 @@ describe("gate state machine", () => {
 
   it("red team data is wired: 6 poisoned cases exist", () => {
     expect(ADVERSARIAL.length).toBe(6);
+  });
+});
+
+/* ---------------- adapter boundary — the seam is real ---------------- */
+
+describe("adapter boundary contract", () => {
+  const SEVERITIES = new Set(["SEV1", "SEV2", "SEV3", "SEV4", "DRILL"]);
+
+  it("engine runs against a DIFFERENT adapter implementation (stub) for every case", () => {
+    for (const c of [...CASES, ...ADVERSARIAL, CORRELATED]) {
+      const v = runAgent(c, { adapters: stubAdapters });
+      expect(SEVERITIES.has(v.severity)).toBe(true);
+      expect(typeof v.team).toBe("string");
+      expect(v.team.length).toBeGreaterThan(0);
+      expect(v.evidence.length).toBeGreaterThanOrEqual(1);
+      expect(v.steps.length).toBeGreaterThanOrEqual(4);
+      expect(v.confidence).toBeGreaterThan(0);
+      expect(v.confidence).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("verdicts stay deterministic under the stub adapters", () => {
+    for (const c of CASES) {
+      expect(JSON.stringify(runAgent(c, { adapters: stubAdapters }).steps)).toBe(
+        JSON.stringify(runAgent(c, { adapters: stubAdapters }).steps)
+      );
+    }
+  });
+
+  it("injection quarantine is engine-side: poisoned alerts still sanitize under stub adapters", () => {
+    const withPoison = ADVERSARIAL.filter((c) =>
+      c.alertText.join("\n").match(/ignore previous instructions|\[system override\]/i)
+    );
+    expect(withPoison.length).toBeGreaterThanOrEqual(1);
+    for (const c of withPoison) {
+      const v = runAgent(c, { adapters: stubAdapters });
+      expect(v.steps.some((s) => s.kind === "sanitize")).toBe(true);
+    }
+  });
+
+  it("stub and sandbox adapters produce different verdicts — proof the engine reads the seam", () => {
+    // A tier-1 blocked-customers case must NOT be SEV1 when the (stub) catalog
+    // says tier-3 with zero impact — i.e. the verdict follows adapter data.
+    const hot = CASES.find((c) => c.catalog.tier === 1 && c.signals.customers === "blocked");
+    expect(hot).toBeDefined();
+    const sandbox = runAgent(hot!).severity;
+    const stub = runAgent(hot!, { adapters: stubAdapters }).severity;
+    expect(sandbox).toBe("SEV1");
+    expect(stub).not.toBe("SEV1");
   });
 });

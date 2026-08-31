@@ -200,6 +200,17 @@ a.anchor {
 }
 a.anchor:hover { color: var(--color-amber); }
 
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  border: 1px solid var(--color-line-2);
+  padding: 1px 5px;
+  background: var(--color-ink-900);
+  color: var(--color-fog);
+}
+
+.btn:active, .btn-solid:active { transform: translateY(0) scale(0.985); }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .ticker-track, .eq span, .skel, .pulse-dot, .pulse-amber, .cursor-blink { animation: none !important; }
