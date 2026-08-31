@@ -1,5 +1,8 @@
 # Solution Video — Storyboard (≤ 5 minutes)
 
+> **Master document: `PRESENTATION.md`** — full SAY/DO runbook, live pitch,
+> Q&A defense. This file is the beat-level storyboard for recording.
+
 > **How to record:** run `npm run dev`, click the amber **▶ demo** button and
 > let **auto + voice** drive. The 13 beats below match the narrated tour
 > 1-to-1 (same order, same injections), so you can record the submission

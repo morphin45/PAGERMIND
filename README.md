@@ -85,7 +85,7 @@ decision quality.
 | 1 · Solution code + improvement changelog | this repo · `CHANGELOG.md` |
 | 1b · Instructions that shape the agent | `agents/TRIAGE_AGENT.md` — the exact rulebook the agent executes |
 | 2 · Reproduction guide | `REPRODUCTION.md` |
-| 3 · Solution video | `VIDEO_SCRIPT.md` — timed storyboard; record one take with the demo button's narrated tour (deterministic engine ⇒ free retakes) |
+| 3 · Solution video | `PRESENTATION.md` (full SAY/DO runbook + Q&A) and `VIDEO_SCRIPT.md` (beat storyboard); record one take with the demo button's narrated tour — deterministic engine ⇒ free retakes |
 | 4 · Agent trajectories | Report → Evidence → *trajectories* (38 runs: input → tool calls → feedback → checkpoints → scores) |
 
 ## Ground rules → evidence
