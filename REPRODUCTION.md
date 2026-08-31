@@ -8,7 +8,7 @@ no paid service is required at any step.
 
 - Node.js ≥ 20 (`node --version`)
 - npm ≥ 9 (`npm --version`)
-- A modern browser (Chrome/Edge recommended for the narrated tour — they ship speech synthesis voices)
+- A modern browser — **Edge recommended for recording**: its "Natural" neural voices (Aria, Guy, …) are auto-selected by the tour narrator and sound close to a human read; Chrome's Google voices and Apple's Premium voices also rank high. The active voice is shown on the narrator toggle.
 
 ## 1 · Set up from a clean environment
 
